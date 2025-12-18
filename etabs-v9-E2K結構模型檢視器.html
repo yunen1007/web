@@ -14,7 +14,7 @@
             padding: 15px;
             border-radius: 6px;
             border: 1px solid #555;
-            width: 300px;
+            width: 320px;
             z-index: 100;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             max-height: 90vh;
@@ -61,14 +61,29 @@
 
         /* --- 雙頭拉桿樣式 --- */
         .dual-slider-wrapper {
-            display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 8px;
+            white-space: nowrap; 
         }
         .clip-input {
-            width: 45px; background: #222; border: 1px solid #444; color: #fff;
-            padding: 2px; font-size: 10px; border-radius: 3px; text-align: center;
+            width: 45px; 
+            background: #222; 
+            border: 1px solid #444; 
+            color: #fff;
+            padding: 2px; 
+            font-size: 10px; 
+            border-radius: 3px; 
+            text-align: center;
+            flex-shrink: 0; 
         }
         .slider-container {
-            position: relative; width: 130px; height: 20px; margin: 0 5px;
+            position: relative; 
+            flex-grow: 1; 
+            height: 20px; 
+            margin: 0 8px; 
+            min-width: 80px; 
         }
         
         .slider-track-bg {
@@ -97,7 +112,11 @@
         .thumb-y::-webkit-slider-thumb { background: #aaffaa; }
         .thumb-z::-webkit-slider-thumb { background: #aaaaff; }
 
-        .axis-label-sm { font-size: 10px; font-weight: bold; width: 10px; display: inline-block;}
+        .axis-label-sm { 
+            font-size: 12px; font-weight: bold; width: 12px; 
+            display: inline-block; text-align: center; margin-right: 2px; 
+            flex-shrink: 0;
+        }
 
         .status { font-size: 12px; color: #ffd700; margin-bottom: 10px; min-height: 1.2em; white-space: pre-wrap; }
         .stats { font-size: 11px; color: #aaa; line-height: 1.4; margin-bottom: 10px; }
@@ -145,7 +164,7 @@
             <label class="switch"><input type="checkbox" id="extrudeToggle"><span class="slider"></span></label>
         </div>
         
-        <div class="section-title">裁切 (Clipping) - Step 0.1</div>
+        <div class="section-title">完全裁切 (Full Clip)</div>
         
         <!-- X Axis -->
         <div class="dual-slider-wrapper">
@@ -244,6 +263,7 @@
             <div class="legend-item"><div class="dot" style="background:rgba(200,200,200,0.5);"></div>板 (Floor)</div>
             <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #fff; width:12px; text-align:center; color:#fff; font-size:8px;">S</div>斷面 (白色)</div>
             <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #ffff00; width:12px; text-align:center; color:#ffff00; font-size:8px;">F</div>桿件編號 (黃色)</div>
+            <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #FF8800; width:12px; text-align:center; color:#FF8800; font-size:8px;">L</div>線載重 (橘色)</div>
             <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #00ff00; width:12px; text-align:center; color:#00ff00; font-size:8px;">J</div>節點編號 (綠色)</div>
         </div>
     </div>
@@ -267,18 +287,23 @@
         let showLoads = false;
         let currentLoadCase = "";
         
+        // 單位與換算相關變數
         let currentUnits = "未定義";
         let currentLengthUnit = "M"; 
         let currentForceUnit = "F"; 
         let currentLoadUnit = "F/L²"; 
+        let currentLineLoadUnit = "F/L";
         let targetLoadUnitMode = "raw"; 
 
         let globalScale = 1.0;
         let currentLabelScale = 1.0; 
         let selectedFile = null; 
 
+        // 裁切邊界 (Model Bounds)
         let modelBounds = { minX:0, maxX:0, minY:0, maxY:0, minZ:0, maxZ:0 };
+        // 當前裁切數值 (Clip Values)
         let clipVals = { minX:-Infinity, maxX:Infinity, minY:-Infinity, maxY:Infinity, minZ:-Infinity, maxZ:Infinity };
+        // 全域裁切平面 (Global Clipping Planes)
         let globalPlanes = [];
 
         let currentViewMode = { type: '3D', value: null };
@@ -298,7 +323,8 @@
             areaAssigns: [], 
             pointAssigns: [],
             loadCases: [], 
-            areaLoads: new Map() 
+            areaLoads: new Map(),
+            lineLoads: new Map()
         };
 
         init();
@@ -333,6 +359,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.autoClear = false;
+            // 啟用本地裁切 (Local Clipping)
             renderer.localClippingEnabled = true;
             container.appendChild(renderer.domElement);
 
@@ -355,13 +382,14 @@
             const ly=createAxisLabel('Y','#00ff00'); ly.position.set(0,9,0); axesContainer.add(ly);
             const lz=createAxisLabel('Z','#0066ff'); lz.position.set(0,0,9); axesContainer.add(lz);
 
+            // 初始化 6 個裁切平面
             globalPlanes = [
-                new THREE.Plane(new THREE.Vector3(1, 0, 0), 0),  
-                new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0), 
-                new THREE.Plane(new THREE.Vector3(0, 0, -1), 0), 
-                new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),  
-                new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),  
-                new THREE.Plane(new THREE.Vector3(0, -1, 0), 0)  
+                new THREE.Plane(new THREE.Vector3(1, 0, 0), 0),  // Min X
+                new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0), // Max X
+                new THREE.Plane(new THREE.Vector3(0, 0, -1), 0), // Min Y (Maps to -Z)
+                new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),  // Max Y
+                new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),  // Min Z (Maps to Y)
+                new THREE.Plane(new THREE.Vector3(0, -1, 0), 0)  // Max Z
             ];
 
             window.addEventListener('resize', onWindowResize);
@@ -436,9 +464,21 @@
                 const t = tokenize(line);
                 if (t[0].toUpperCase() === 'UNITS') {
                     currentUnits = t.slice(1).join(', ');
-                    if (t.length >= 2) { currentForceUnit = t[1].replace(/"/g, '').toUpperCase(); } else { currentForceUnit = "F"; }
-                    if (t.length >= 3) { currentLengthUnit = t[2].replace(/"/g, '').toUpperCase(); } else { currentLengthUnit = "M"; }
+                    
+                    if (t.length >= 2) {
+                        currentForceUnit = t[1].replace(/"/g, '').toUpperCase();
+                    } else {
+                        currentForceUnit = "F";
+                    }
+
+                    if (t.length >= 3) {
+                        currentLengthUnit = t[2].replace(/"/g, '').toUpperCase();
+                    } else {
+                        currentLengthUnit = "M";
+                    }
+
                     currentLoadUnit = `${currentForceUnit}/${currentLengthUnit}²`;
+                    currentLineLoadUnit = `${currentForceUnit}/${currentLengthUnit}`;
                 }
             }
 
@@ -581,6 +621,28 @@
                     }
                 }
             }
+
+            // 新增: 解析線載重 (Line Loads)
+            const lineLoads = modelData.rawBlocks.get('LINE OBJECT LOADS') || modelData.rawBlocks.get('FRAME OBJECT LOADS');
+            if (lineLoads) {
+                for(let line of lineLoads) {
+                    const t = tokenize(line);
+                    const lineId = t[1];
+                    const story = t[2];
+                    let lc = null, val = 0, type = "";
+                    for(let i=3; i<t.length; i+=2) {
+                        if(t[i].toUpperCase() === 'LC') lc = t[i+1];
+                        if(t[i].toUpperCase() === 'FVAL') val = parseFloat(t[i+1]);
+                        if(t[i].toUpperCase() === 'TYPE') type = t[i+1].toUpperCase();
+                    }
+                    // 只提取均佈載重 (UNIFF)
+                    if (lc && type.includes("UNIF")) {
+                        if (!modelData.lineLoads.has(lc)) modelData.lineLoads.set(lc, new Map());
+                        const uniqueKey = `${lineId}_${story}`;
+                        modelData.lineLoads.get(lc).set(uniqueKey, val);
+                    }
+                }
+            }
         }
 
         function updateSelectors() {
@@ -622,7 +684,7 @@
         function parseE2K(content) {
             document.getElementById('status').innerText = "讀取資料中...";
             for (let key in modelData) {
-                if (key === 'rawBlocks' || key === 'areaLoads') modelData[key].clear();
+                if (key === 'rawBlocks' || key === 'areaLoads' || key === 'lineLoads') modelData[key].clear();
                 else if (Array.isArray(modelData[key])) modelData[key] = [];
                 else modelData[key].clear();
             }
@@ -632,6 +694,7 @@
             currentLengthUnit = "M";
             currentForceUnit = "F";
             currentLoadUnit = "F/L²";
+            currentLineLoadUnit = "F/L";
 
             ingestRawData(content);
             document.getElementById('status').innerText = "解析結構中...";
@@ -694,18 +757,23 @@
                 clipVals.minY -= pad; clipVals.maxY += pad;
                 clipVals.minZ -= pad; clipVals.maxZ += pad;
             } else {
-                // Read from DOM only if sliders changed, but also trust input values if called via change event
-                clipVals.minX = parseFloat(document.getElementById('rangeMinX').value);
-                clipVals.maxX = parseFloat(document.getElementById('rangeMaxX').value);
-                clipVals.minY = parseFloat(document.getElementById('rangeMinY').value);
-                clipVals.maxY = parseFloat(document.getElementById('rangeMaxY').value);
-                clipVals.minZ = parseFloat(document.getElementById('rangeMinZ').value);
-                clipVals.maxZ = parseFloat(document.getElementById('rangeMaxZ').value);
-                
-                // Avoid crossover
-                if(clipVals.minX > clipVals.maxX) { const t=clipVals.minX; clipVals.minX=clipVals.maxX; clipVals.maxX=t; }
-                if(clipVals.minY > clipVals.maxY) { const t=clipVals.minY; clipVals.minY=clipVals.maxY; clipVals.maxY=t; }
-                if(clipVals.minZ > clipVals.maxZ) { const t=clipVals.minZ; clipVals.minZ=clipVals.maxZ; clipVals.maxZ=t; }
+                const valMinX = parseFloat(document.getElementById('clipMinX').value);
+                clipVals.minX = isNaN(valMinX) ? -Infinity : valMinX;
+
+                const valMaxX = parseFloat(document.getElementById('clipMaxX').value);
+                clipVals.maxX = isNaN(valMaxX) ? Infinity : valMaxX;
+
+                const valMinY = parseFloat(document.getElementById('clipMinY').value);
+                clipVals.minY = isNaN(valMinY) ? -Infinity : valMinY;
+
+                const valMaxY = parseFloat(document.getElementById('clipMaxY').value);
+                clipVals.maxY = isNaN(valMaxY) ? Infinity : valMaxY;
+
+                const valMinZ = parseFloat(document.getElementById('clipMinZ').value);
+                clipVals.minZ = isNaN(valMinZ) ? -Infinity : valMinZ;
+
+                const valMaxZ = parseFloat(document.getElementById('clipMaxZ').value);
+                clipVals.maxZ = isNaN(valMaxZ) ? Infinity : valMaxZ;
             }
 
             if (updateDOM || reset) {
@@ -728,15 +796,12 @@
                 const minVal = clipVals['min'+axis];
                 const maxVal = clipVals['max'+axis];
                 
-                // Update number inputs without triggering feedback loop
                 const numMin = document.getElementById('numMin'+axis);
                 const numMax = document.getElementById('numMax'+axis);
                 
-                // Only update if not focused to avoid disrupting typing
                 if(document.activeElement !== numMin) numMin.value = minVal.toFixed(1);
                 if(document.activeElement !== numMax) numMax.value = maxVal.toFixed(1);
 
-                // Update visual track
                 const rangeMin = parseFloat(document.getElementById('rangeMin'+axis).min);
                 const rangeMax = parseFloat(document.getElementById('rangeMax'+axis).max);
                 const percentMin = ((minVal - rangeMin) / (rangeMax - rangeMin)) * 100;
@@ -882,7 +947,7 @@
             map.magFilter = THREE.LinearFilter;
 
             const mat = new THREE.SpriteMaterial({ map: map, depthTest: false });
-            // Disable clipping for text labels
+            // 標籤不裁切
             // mat.clippingPlanes = globalPlanes;
 
             const sprite = new THREE.Sprite(mat);
@@ -890,6 +955,53 @@
             sprite.scale.set(baseSize * aspectRatio, baseSize, 1);
 
             return sprite;
+        }
+
+        function createDistributedLoadSymbol(v1, v2, val, scale) {
+            const group = new THREE.Group();
+            const length = v1.distanceTo(v2);
+            if (length < 0.001) return group;
+
+            // 均佈載重箭頭間距
+            const step = scale * 2.0; 
+            const count = Math.max(3, Math.floor(length / step));
+            const arrowHeight = scale * 1.5; 
+            
+            const color = 0xFF8800; // Orange
+            const lineMat = new THREE.LineBasicMaterial({ color: color, clippingPlanes: globalPlanes });
+            const coneGeo = new THREE.ConeGeometry(scale * 0.1, scale * 0.3, 8);
+            const coneMat = new THREE.MeshBasicMaterial({ color: color, clippingPlanes: globalPlanes });
+
+            // 載重垂直於 Z 軸 (E2K Gravity = -Z)
+            const zOffset = new THREE.Vector3(0, 0, arrowHeight); 
+            const linePoints = [];
+            
+            for (let i = 0; i <= count; i++) {
+                const t = i / count;
+                const pos = new THREE.Vector3().lerpVectors(v1, v2, t);
+                const topPos = pos.clone().add(zOffset);
+                
+                // 箭桿
+                const shaftGeo = new THREE.BufferGeometry().setFromPoints([topPos, pos]);
+                group.add(new THREE.Line(shaftGeo, lineMat));
+
+                // 箭頭
+                const cone = new THREE.Mesh(coneGeo, coneMat);
+                // 箭頭位置在桿件上方一點點
+                cone.position.copy(pos).add(new THREE.Vector3(0, 0, scale * 0.15)); 
+                // Cone 預設朝 +Y，需旋轉朝 -Z
+                cone.rotation.x = -Math.PI / 2; 
+                group.add(cone);
+
+                linePoints.push(topPos.x, topPos.y, topPos.z);
+            }
+
+            // 頂部連線
+            const topLineGeo = new THREE.BufferGeometry();
+            topLineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePoints, 3));
+            group.add(new THREE.Line(topLineGeo, lineMat));
+
+            return group;
         }
 
         function formatDim(val, skipUnit=false) {
@@ -948,7 +1060,7 @@
             const yBubbleBot = limitMinY - bubbleOffset;
             
             xG.forEach(d => {
-                // Grid lines not clipped (enableClipping = false)
+                // 網格線與氣泡不裁切 (enableClipping = false)
                 pts.push(d.coord, yBubbleBot, baseElev, d.coord, yBubbleTop, baseElev);
                 let s1 = createLabelSprite(d.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false); 
                 s1.position.set(d.coord, yBubbleBot, baseElev); g.add(s1);
@@ -999,11 +1111,11 @@
             }
             const yDimGeo = new THREE.BufferGeometry();
             yDimGeo.setAttribute('position', new THREE.Float32BufferAttribute(yDimPts, 3));
-            g.add(new THREE.LineSegments(yDimGeo, new THREE.LineBasicMaterial({ color: 0xffff00 })));
+            g.add(new THREE.LineSegments(yDimGeo, new THREE.LineBasicMaterial({ color: 0xffff00 }))); 
 
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-            g.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0x666666, transparent: true, opacity: 0.3 })));
+            g.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0x666666, transparent: true, opacity: 0.3 }))); 
             
             return g;
         }
@@ -1033,11 +1145,13 @@
             grids.forEach(gr => {
                 const c = gr.coord;
                 if (isXView) {
+                    if (!isVisible({x: viewCoord, y: c, z: (minZ+maxZ)/2}, {x: viewCoord, y: c, z: (minZ+maxZ)/2}, null)) return;
                     gridLinesPos.push(viewCoord, c, minZ - globalScale);
                     gridLinesPos.push(viewCoord, c, bubbleZ);
                     let s = createLabelSprite(gr.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false); 
                     s.position.set(viewCoord, c, bubbleZ); g.add(s);
                 } else {
+                    if (!isVisible({x: c, y: viewCoord, z: (minZ+maxZ)/2}, {x: c, y: viewCoord, z: (minZ+maxZ)/2}, null)) return;
                     gridLinesPos.push(c, viewCoord, minZ - globalScale);
                     gridLinesPos.push(c, viewCoord, bubbleZ);
                     let s = createLabelSprite(gr.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false); 
@@ -1076,12 +1190,14 @@
             return g;
         }
 
+        // ... (rest of the functions: createExtrudedBar, isVisible, getHeatmapColor, getLoadConversionFactor, build3DScene, fitCamera, setCameraView, clearModelData, Event Listeners remain the same)
         function createExtrudedBar(p1, p2, width, depth, color) {
             const vec = new THREE.Vector3().subVectors(p2, p1);
             const len = vec.length();
             if(len < 0.001) return new THREE.Object3D();
             const geo = new THREE.BoxGeometry(width, depth, len);
             const mat = new THREE.MeshLambertMaterial({ color: color });
+            // 啟用裁切
             mat.clippingPlanes = globalPlanes;
             
             const mesh = new THREE.Mesh(geo, mat);
@@ -1090,7 +1206,9 @@
             return mesh;
         }
 
+        // 修改後的 isVisible: AABB 碰撞檢測 + 視圖檢查
         function isVisible(p1, p2, objStory) {
+            // 1. 基礎視圖模式檢查
             if (currentViewMode.type === 'PLAN' && objStory !== null) {
                 if (objStory !== currentViewMode.value) return false;
             }
@@ -1105,6 +1223,7 @@
                 if (!(Math.abs(p1.y - gridY) < tol && Math.abs(p2.y - gridY) < tol)) return false;
             }
 
+            // 2. 裁切範圍檢查 (AABB Check)
             const minX = Math.min(p1.x, p2.x); const maxX = Math.max(p1.x, p2.x);
             const minY = Math.min(p1.y, p2.y); const maxY = Math.max(p1.y, p2.y);
             const minZ = Math.min(p1.z, p2.z); const maxZ = Math.max(p1.z, p2.z);
@@ -1150,6 +1269,38 @@
             return 1.0; 
         }
 
+        function getLineLoadConversionFactor(targetMode) {
+            let fToN = 1.0;
+            const f = currentForceUnit;
+            if (f.includes("KN")) fToN = 1000.0;
+            else if (f.includes("TON") || f.includes("TF")) fToN = 9806.65;
+            else if (f.includes("KG") || f.includes("KGF")) fToN = 9.80665;
+            else if (f.includes("KIP")) fToN = 4448.22;
+            else if (f.includes("LB")) fToN = 4.44822;
+
+            let lToM = 1.0;
+            const l = currentLengthUnit;
+            if (l === "CM") lToM = 0.01;
+            else if (l === "MM") lToM = 0.001;
+            else if (l === "FT") lToM = 0.3048;
+            else if (l === "IN") lToM = 0.0254;
+
+            // F/L -> N/m
+            const toNpM = fToN / lToM;
+
+            if (targetMode === "t_m2") {
+                // Return t/m (Force in Ton, L in meter)
+                return toNpM / 9806.65;
+            }
+            if (targetMode === "kgf_cm2") {
+                // Return kgf/cm
+                // 1 kgf/cm = 9.80665 N / 0.01 m = 980.665 N/m
+                return toNpM / 980.665;
+            }
+            
+            return 1.0; 
+        }
+
         function build3DScene(resetCamera = false) {
             if (rootGroup) scene.remove(rootGroup);
             rootGroup = new THREE.Group();
@@ -1157,18 +1308,24 @@
             let counts = { beam:0, col:0, floor:0, wall:0, support:0 };
 
             let currentCaseLoads = null;
+            let currentLineLoads = null;
             let minLoad = Infinity, maxLoad = -Infinity;
             let conversionFactor = 1.0;
+            let lineConversionFactor = 1.0;
             let displayUnitLabel = currentLoadUnit;
+            let displayLineUnitLabel = currentLineLoadUnit;
 
             if (targetLoadUnitMode !== "raw") {
                 conversionFactor = getLoadConversionFactor(targetLoadUnitMode);
-                if (targetLoadUnitMode === "t_m2") displayUnitLabel = "t/m²";
-                else if (targetLoadUnitMode === "kgf_cm2") displayUnitLabel = "kgf/cm²";
+                lineConversionFactor = getLineLoadConversionFactor(targetLoadUnitMode);
+                if (targetLoadUnitMode === "t_m2") { displayUnitLabel = "t/m²"; displayLineUnitLabel = "t/m"; }
+                else if (targetLoadUnitMode === "kgf_cm2") { displayUnitLabel = "kgf/cm²"; displayLineUnitLabel = "kgf/cm"; }
             }
 
             if (showLoads && currentLoadCase) {
                 currentCaseLoads = modelData.areaLoads.get(currentLoadCase);
+                currentLineLoads = modelData.lineLoads.get(currentLoadCase);
+
                 if (currentCaseLoads) {
                     for (let val of currentCaseLoads.values()) {
                         const convVal = val * conversionFactor;
@@ -1292,6 +1449,33 @@
                             lbl.position.copy(j.pos); rootGroup.add(lbl);
                         }
                     });
+                }
+
+                // 線載重文字 (Line Loads)
+                if (showLoads && currentLineLoads) {
+                    const key = `${a.id}_${a.story}`;
+                    if (currentLineLoads.has(key)) {
+                        const val = currentLineLoads.get(key) * lineConversionFactor;
+                        // 繪製箭頭
+                        const arrows = createDistributedLoadSymbol(v1, v2, val, globalScale);
+                        rootGroup.add(arrows);
+
+                        const labelText = `${val.toFixed(2)} ${displayLineUnitLabel}`;
+                        // 使用橘色背景，enableClipping=false
+                        const lbl = createLabelSprite(labelText, '#fff', 'rgba(255,100,0,0.9)', 0.75, false);
+                        lbl.material.rotation = angle;
+                        
+                        const pos = mid.clone();
+                        if (isCol) { 
+                            lbl.material.rotation = Math.PI / 2; pos.x += globalScale * 0.4; 
+                        } else { 
+                            // 顯示在斷面文字更上方 (0.5 vs 0.2)
+                            pos.z += globalScale * 0.5; 
+                            if(currentViewMode.type === 'PLAN') pos.add(new THREE.Vector3(-dy, dx, 0).normalize().multiplyScalar(globalScale * 0.15));
+                        }
+                        lbl.position.copy(pos);
+                        rootGroup.add(lbl);
+                    }
                 }
             }
 
@@ -1454,7 +1638,7 @@
                 rootGroup = null;
             }
             for (let key in modelData) {
-                if (key === 'rawBlocks' || key === 'areaLoads') modelData[key].clear();
+                if (key === 'rawBlocks' || key === 'areaLoads' || key === 'lineLoads') modelData[key].clear();
                 else if (Array.isArray(modelData[key])) modelData[key] = [];
                 else modelData[key].clear();
             }
@@ -1537,6 +1721,8 @@
             targetLoadUnitMode = e.target.value;
             if(showLoads && modelData.lineAssigns.length) build3DScene(false);
         });
+
+        document.getElementById('loadCaseSelector').addEventListener('change', e=>{currentLoadCase=e.target.value; if(showLoads && modelData.lineAssigns.length) build3DScene(false);});
 
         document.getElementById('labelScaleSlider').addEventListener('input', (e) => {
             currentLabelScale = parseFloat(e.target.value);
