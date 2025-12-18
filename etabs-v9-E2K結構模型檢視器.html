@@ -263,7 +263,7 @@
             <div class="legend-item"><div class="dot" style="background:rgba(200,200,200,0.5);"></div>板 (Floor)</div>
             <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #fff; width:12px; text-align:center; color:#fff; font-size:8px;">S</div>斷面 (白色)</div>
             <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #ffff00; width:12px; text-align:center; color:#ffff00; font-size:8px;">F</div>桿件編號 (黃色)</div>
-            <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #FF8800; width:12px; text-align:center; color:#FF8800; font-size:8px;">L</div>線載重 (橘色)</div>
+            <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #00C832; width:12px; text-align:center; color:#00C832; font-size:8px;">L</div>線載重 (綠色)</div>
             <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #00ff00; width:12px; text-align:center; color:#00ff00; font-size:8px;">J</div>節點編號 (綠色)</div>
         </div>
     </div>
@@ -962,7 +962,6 @@
             const length = v1.distanceTo(v2);
             if (length < 0.001) return group;
 
-            // 均佈載重箭頭間距
             const step = scale * 2.0; 
             const count = Math.max(3, Math.floor(length / step));
             const arrowHeight = scale * 1.5; 
@@ -972,7 +971,6 @@
             const coneGeo = new THREE.ConeGeometry(scale * 0.1, scale * 0.3, 8);
             const coneMat = new THREE.MeshBasicMaterial({ color: color, clippingPlanes: globalPlanes });
 
-            // 載重垂直於 Z 軸 (E2K Gravity = -Z)
             const zOffset = new THREE.Vector3(0, 0, arrowHeight); 
             const linePoints = [];
             
@@ -981,22 +979,17 @@
                 const pos = new THREE.Vector3().lerpVectors(v1, v2, t);
                 const topPos = pos.clone().add(zOffset);
                 
-                // 箭桿
                 const shaftGeo = new THREE.BufferGeometry().setFromPoints([topPos, pos]);
                 group.add(new THREE.Line(shaftGeo, lineMat));
 
-                // 箭頭
                 const cone = new THREE.Mesh(coneGeo, coneMat);
-                // 箭頭位置在桿件上方一點點
                 cone.position.copy(pos).add(new THREE.Vector3(0, 0, scale * 0.15)); 
-                // Cone 預設朝 +Y，需旋轉朝 -Z
                 cone.rotation.x = -Math.PI / 2; 
                 group.add(cone);
 
                 linePoints.push(topPos.x, topPos.y, topPos.z);
             }
 
-            // 頂部連線
             const topLineGeo = new THREE.BufferGeometry();
             topLineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePoints, 3));
             group.add(new THREE.Line(topLineGeo, lineMat));
@@ -1461,16 +1454,17 @@
                         rootGroup.add(arrows);
 
                         const labelText = `${val.toFixed(2)} ${displayLineUnitLabel}`;
-                        // 使用橘色背景，enableClipping=false
-                        const lbl = createLabelSprite(labelText, '#fff', 'rgba(255,100,0,0.9)', 0.75, false);
+                        
+                        // 修正：使用綠色背景，enableClipping=false
+                        const lbl = createLabelSprite(labelText, '#fff', 'rgba(0, 200, 50, 0.9)', 0.75, false);
                         lbl.material.rotation = angle;
                         
                         const pos = mid.clone();
                         if (isCol) { 
                             lbl.material.rotation = Math.PI / 2; pos.x += globalScale * 0.4; 
                         } else { 
-                            // 顯示在斷面文字更上方 (0.5 vs 0.2)
-                            pos.z += globalScale * 0.5; 
+                            // 修正：往上移至箭頭頂端上方 (原本是 0.5，現在改為 1.8)
+                            pos.z += globalScale * 1.8; 
                             if(currentViewMode.type === 'PLAN') pos.add(new THREE.Vector3(-dy, dx, 0).normalize().multiplyScalar(globalScale * 0.15));
                         }
                         lbl.position.copy(pos);
