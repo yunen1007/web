@@ -966,7 +966,8 @@
             const count = Math.max(3, Math.floor(length / step));
             const arrowHeight = scale * 1.5; 
             
-            const color = 0xFF8800; // Orange
+            // 修正：顏色改為綠色 (0x00C832)，與標籤和圖例一致
+            const color = 0x00C832; 
             const lineMat = new THREE.LineBasicMaterial({ color: color, clippingPlanes: globalPlanes });
             const coneGeo = new THREE.ConeGeometry(scale * 0.1, scale * 0.3, 8);
             const coneMat = new THREE.MeshBasicMaterial({ color: color, clippingPlanes: globalPlanes });
@@ -1464,6 +1465,7 @@
                             lbl.material.rotation = Math.PI / 2; pos.x += globalScale * 0.4; 
                         } else { 
                             // 修正：往上移至箭頭頂端上方 (原本是 0.5，現在改為 1.8)
+                            // 箭頭高度在 createDistributedLoadSymbol 中是 scale * 1.5
                             pos.z += globalScale * 1.8; 
                             if(currentViewMode.type === 'PLAN') pos.add(new THREE.Vector3(-dy, dx, 0).normalize().multiplyScalar(globalScale * 0.15));
                         }
