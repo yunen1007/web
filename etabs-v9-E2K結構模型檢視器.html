@@ -1,135 +1,377 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ETABS E2K Ultimate Viewer</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; background-color: #000; color: #eee; }
-        
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #000;
+            color: #eee;
+        }
+
         #ui-container {
             position: absolute;
-            top: 20px; left: 20px;
+            top: 20px;
+            left: 20px;
             background: rgba(40, 40, 40, 0.95);
             padding: 15px;
             border-radius: 6px;
             border: 1px solid #555;
             width: 320px;
             z-index: 100;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             max-height: 90vh;
             overflow-y: auto;
         }
-        h3 { margin-top: 0; margin-bottom: 10px; color: #4db8ff; font-size: 16px; border-bottom: 1px solid #555; padding-bottom: 10px; }
-        input[type="file"] { margin-bottom: 10px; width: 100%; font-size: 12px; }
-        
-        .section-title { font-size: 12px; color: #aaa; margin-top: 10px; margin-bottom: 5px; font-weight: bold; border-top: 1px solid #555; padding-top: 5px; }
-        
-        .btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
+
+        h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #4db8ff;
+            font-size: 16px;
+            border-bottom: 1px solid #555;
+            padding-bottom: 10px;
+        }
+
+        input[type="file"] {
+            margin-bottom: 10px;
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            border-top: 1px solid #555;
+            padding-top: 5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         .btn {
-            flex: 1; padding: 8px 0; border: none; border-radius: 4px;
-            cursor: pointer; font-size: 13px; font-weight: bold; color: white;
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            color: white;
             transition: background 0.2s;
         }
-        #btnRender { background-color: #007acc; }
-        #btnRender:hover { background-color: #005f9e; }
-        #btnRender:disabled { background-color: #444; color: #888; cursor: not-allowed; }
-        #btnClear { background-color: #d9534f; }
-        #btnClear:hover { background-color: #c9302c; }
-        #btnResetClip { background-color: #555; font-size: 11px; padding: 4px 0; margin-top: 5px; width: 100%; }
-        #btnResetClip:hover { background-color: #666; }
 
-        select {
-            width: 100%; padding: 5px; margin-bottom: 5px;
-            background-color: #333; color: white;
-            border: 1px solid #555; border-radius: 4px; font-size: 13px;
+        #btnRender {
+            background-color: #007acc;
         }
 
-        .control-group { margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
-        .switch { position: relative; display: inline-block; width: 36px; height: 18px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #4db8ff; }
-        input:checked + .slider:before { transform: translateX(18px); }
-        .label-text { font-size: 13px; color: #ccc; }
+        #btnRender:hover {
+            background-color: #005f9e;
+        }
+
+        #btnRender:disabled {
+            background-color: #444;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        #btnClear {
+            background-color: #d9534f;
+        }
+
+        #btnClear:hover {
+            background-color: #c9302c;
+        }
+
+        #btnResetClip {
+            background-color: #555;
+            font-size: 11px;
+            padding: 4px 0;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        #btnResetClip:hover {
+            background-color: #666;
+        }
+
+        select {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 5px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .control-group {
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 18px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4db8ff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(18px);
+        }
+
+        .label-text {
+            font-size: 13px;
+            color: #ccc;
+        }
 
         /* 滑桿樣式 */
-        input[type=range].simple-range { -webkit-appearance: none; background: transparent; width: 100px;}
-        input[type=range].simple-range::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #4db8ff; cursor: pointer; margin-top: -5px; } 
-        input[type=range].simple-range::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #555; border-radius: 2px; }
+        input[type=range].simple-range {
+            -webkit-appearance: none;
+            background: transparent;
+            width: 100px;
+        }
+
+        input[type=range].simple-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: #4db8ff;
+            cursor: pointer;
+            margin-top: -5px;
+        }
+
+        input[type=range].simple-range::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #555;
+            border-radius: 2px;
+        }
 
         /* --- 雙頭拉桿樣式 --- */
         .dual-slider-wrapper {
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 8px;
-            white-space: nowrap; 
+            white-space: nowrap;
         }
-        .clip-input {
-            width: 45px; 
-            background: #222; 
-            border: 1px solid #444; 
-            color: #fff;
-            padding: 2px; 
-            font-size: 10px; 
-            border-radius: 3px; 
-            text-align: center;
-            flex-shrink: 0; 
-        }
-        .slider-container {
-            position: relative; 
-            flex-grow: 1; 
-            height: 20px; 
-            margin: 0 8px; 
-            min-width: 80px; 
-        }
-        
-        .slider-track-bg {
-            position: absolute; top: 50%; left: 0; width: 100%; height: 4px;
-            background: #444; border-radius: 2px; transform: translateY(-50%); z-index: 1;
-        }
-        .slider-track-fill {
-            position: absolute; top: 50%; height: 4px;
-            background: #888; z-index: 2; transform: translateY(-50%);
-        }
-        
-        .dual-range {
-            position: absolute; top: 50%; left: 0; width: 100%;
-            -webkit-appearance: none; pointer-events: none; 
-            background: none; transform: translateY(-50%); z-index: 3; margin: 0;
-        }
-        .dual-range::-webkit-slider-thumb {
-            -webkit-appearance: none; pointer-events: auto; 
-            height: 14px; width: 14px; border-radius: 50%; background: #fff;
-            cursor: pointer; border: 1px solid #777;
-        }
-        .track-x { background: #ff4444; }
-        .track-y { background: #44ff44; }
-        .track-z { background: #4488ff; }
-        .thumb-x::-webkit-slider-thumb { background: #ffaaaa; }
-        .thumb-y::-webkit-slider-thumb { background: #aaffaa; }
-        .thumb-z::-webkit-slider-thumb { background: #aaaaff; }
 
-        .axis-label-sm { 
-            font-size: 12px; font-weight: bold; width: 12px; 
-            display: inline-block; text-align: center; margin-right: 2px; 
+        .clip-input {
+            width: 45px;
+            background: #222;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 2px;
+            font-size: 10px;
+            border-radius: 3px;
+            text-align: center;
             flex-shrink: 0;
         }
 
-        .status { font-size: 12px; color: #ffd700; margin-bottom: 10px; min-height: 1.2em; white-space: pre-wrap; }
-        .stats { font-size: 11px; color: #aaa; line-height: 1.4; margin-bottom: 10px; }
-        
-        .legend { font-size: 11px; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
-        .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
-        .dot { width: 10px; height: 10px; margin-right: 8px; border-radius: 2px; }
-        .symbol-icon { display:inline-block; width:12px; height:12px; margin-right:8px; border: 1px solid #00ff00; }
-        
-        .gradient-bar { height: 10px; width: 100%; margin-bottom: 5px; background: linear-gradient(to right, blue, cyan, lime, yellow, red); border-radius: 2px; }
-        .gradient-labels { display: flex; justify-content: space-between; font-size: 10px; color: #ccc; }
+        .slider-container {
+            position: relative;
+            flex-grow: 1;
+            height: 24px;
+            /* Increased height for thumb visibility */
+            margin: 0 8px;
+            min-width: 80px;
+            display: flex;
+            align-items: center;
+        }
 
-        #canvas-container { width: 100vw; height: 100vh; }
+        .slider-track-bg {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #444;
+            border-radius: 2px;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .slider-track-fill {
+            position: absolute;
+            top: 50%;
+            height: 4px;
+            background: #888;
+            z-index: 2;
+            transform: translateY(-50%);
+        }
+
+        .dual-range {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            -webkit-appearance: none;
+            pointer-events: none;
+            background: none;
+            transform: translateY(-50%);
+            z-index: 3;
+            margin: 0;
+        }
+
+        .dual-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            pointer-events: auto;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: 1px solid #777;
+        }
+
+        .track-x {
+            background: #ff4444;
+        }
+
+        .track-y {
+            background: #44ff44;
+        }
+
+        .track-z {
+            background: #4488ff;
+        }
+
+        .thumb-x::-webkit-slider-thumb {
+            background: #ffaaaa;
+        }
+
+        .thumb-y::-webkit-slider-thumb {
+            background: #aaffaa;
+        }
+
+        .thumb-z::-webkit-slider-thumb {
+            background: #aaaaff;
+        }
+
+        .axis-label-sm {
+            font-size: 12px;
+            font-weight: bold;
+            width: 12px;
+            display: inline-block;
+            text-align: center;
+            margin-right: 2px;
+            flex-shrink: 0;
+        }
+
+        .status {
+            font-size: 12px;
+            color: #ffd700;
+            margin-bottom: 10px;
+            min-height: 1.2em;
+            white-space: pre-wrap;
+        }
+
+        .stats {
+            font-size: 11px;
+            color: #aaa;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .legend {
+            font-size: 11px;
+            margin-top: 10px;
+            border-top: 1px solid #444;
+            padding-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+
+        .symbol-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 8px;
+            border: 1px solid #00ff00;
+        }
+
+        .gradient-bar {
+            height: 10px;
+            width: 100%;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, blue, cyan, lime, yellow, red);
+            border-radius: 2px;
+        }
+
+        .gradient-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #ccc;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
     </style>
     <script type="importmap">
         {
@@ -140,19 +382,22 @@
         }
     </script>
 </head>
+
 <body>
 
     <div id="ui-container">
         <h3>E2K 結構模型檢視器</h3>
         <input type="file" id="fileInput" accept=".e2k,.txt">
-        
+
         <div class="btn-group">
             <button id="btnRender" class="btn" disabled>檢視模型</button>
             <button id="btnClear" class="btn">清除模型</button>
         </div>
 
         <div class="section-title">視圖設定</div>
-        <select id="viewSelector"><option value="3D">3D 全景 (3D View)</option></select>
+        <select id="viewSelector">
+            <option value="3D">3D 全景 (3D View)</option>
+        </select>
 
         <div class="control-group">
             <span class="label-text">標註大小 (Scale)</span>
@@ -163,9 +408,9 @@
             <span class="label-text">實體顯示 (Extrude)</span>
             <label class="switch"><input type="checkbox" id="extrudeToggle"><span class="slider"></span></label>
         </div>
-        
+
         <div class="section-title">完全裁切 (Full Clip)</div>
-        
+
         <!-- X Axis -->
         <div class="dual-slider-wrapper">
             <span class="axis-label-sm" style="color:#ff4444">X</span>
@@ -226,14 +471,34 @@
             <span class="label-text">顯示釋放 (Releases)</span>
             <label class="switch"><input type="checkbox" id="releaseToggle" checked><span class="slider"></span></label>
         </div>
+
+        <div class="section-title">顯示選項 (Display Options)</div>
+        <div class="control-group">
+            <span class="label-text">柱 (Column)</span>
+            <label class="switch"><input type="checkbox" id="colToggle" checked><span class="slider"></span></label>
+        </div>
+        <div class="control-group">
+            <span class="label-text">樑 (Beam)</span>
+            <label class="switch"><input type="checkbox" id="beamToggle" checked><span class="slider"></span></label>
+        </div>
+        <div class="control-group">
+            <span class="label-text">牆 (Wall)</span>
+            <label class="switch"><input type="checkbox" id="wallToggle" checked><span class="slider"></span></label>
+        </div>
+        <div class="control-group">
+            <span class="label-text">板 (Floor)</span>
+            <label class="switch"><input type="checkbox" id="floorToggle" checked><span class="slider"></span></label>
+        </div>
         <div class="control-group">
             <span class="label-text">顯示網格 (Grids)</span>
             <label class="switch"><input type="checkbox" id="gridToggle" checked><span class="slider"></span></label>
         </div>
 
         <div class="section-title">載重顯示 (Loads)</div>
-        <select id="loadCaseSelector"><option value="">無載重資料</option></select>
-        
+        <select id="loadCaseSelector">
+            <option value="">無載重資料</option>
+        </select>
+
         <div class="control-group">
             <span class="label-text">顯示單位</span>
             <select id="loadUnitSelector" style="width: 100px; margin-bottom: 0;">
@@ -247,7 +512,7 @@
             <span class="label-text">顯示載重值</span>
             <label class="switch"><input type="checkbox" id="loadToggle"><span class="slider"></span></label>
         </div>
-        
+
         <div id="loadLegend" style="display:none; margin-bottom:10px;">
             <div class="gradient-bar"></div>
             <div class="gradient-labels"><span id="loadMin">0</span><span id="loadMax">10</span></div>
@@ -255,19 +520,66 @@
 
         <div id="status" class="status">請選擇檔案...</div>
         <div id="stats" class="stats"></div>
-        
+
         <div class="legend">
-            <div class="legend-item"><div class="dot" style="background:#ff8800;"></div>柱 (Column)</div>
-            <div class="legend-item"><div class="dot" style="background:#00ffff;"></div>樑 (Beam)</div>
-            <div class="legend-item"><div class="dot" style="background:rgba(255,50,50,0.7);"></div>牆 (Wall)</div>
-            <div class="legend-item"><div class="dot" style="background:rgba(200,200,200,0.5);"></div>板 (Floor)</div>
-            <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #fff; width:12px; text-align:center; color:#fff; font-size:8px;">S</div>斷面 (白色)</div>
-            <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #ffff00; width:12px; text-align:center; color:#ffff00; font-size:8px;">F</div>桿件編號 (黃色)</div>
-            <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #00C832; width:12px; text-align:center; color:#00C832; font-size:8px;">L</div>線載重 (綠色)</div>
-            <div class="legend-item"><div class="dot" style="background:transparent; border:1px solid #00ff00; width:12px; text-align:center; color:#00ff00; font-size:8px;">J</div>節點編號 (綠色)</div>
+            <div class="legend-item">
+                <div class="dot" style="background:#ff8800;"></div>柱 (Column)
+            </div>
+            <div class="legend-item">
+                <div class="dot" style="background:#00ffff;"></div>樑 (Beam)
+            </div>
+            <div class="legend-item">
+                <div class="dot" style="background:rgba(255,50,50,0.7);"></div>牆 (Wall)
+            </div>
+            <div class="legend-item">
+                <div class="dot" style="background:rgba(200,200,200,0.5);"></div>板 (Floor)
+            </div>
+            <div class="legend-item">
+                <div class="dot"
+                    style="background:transparent; border:1px solid #fff; width:12px; text-align:center; color:#fff; font-size:8px;">
+                    S</div>斷面 (白色)
+            </div>
+            <div class="legend-item">
+                <div class="dot"
+                    style="background:transparent; border:1px solid #ffff00; width:12px; text-align:center; color:#ffff00; font-size:8px;">
+                    F</div>桿件編號 (黃色)
+            </div>
+            <div class="legend-item">
+                <div class="dot"
+                    style="background:transparent; border:1px solid #00C832; width:12px; text-align:center; color:#00C832; font-size:8px;">
+                    L</div>線載重 (綠色)
+            </div>
+            <div class="legend-item">
+                <div class="dot"
+                    style="background:transparent; border:1px solid #ff0000; width:12px; text-align:center; color:#ff0000; font-size:8px;">
+                    P</div>點載重 (紅色)
+            </div>
+            <div class="legend-item">
+                <div class="dot"
+                    style="background:transparent; border:1px solid #00ff00; width:12px; text-align:center; color:#00ff00; font-size:8px;">
+                    J</div>節點編號 (綠色)
+            </div>
+            <div class="legend-item">
+                <div class="dot"
+                    style="background:#00ff00; border:1px solid #00ff00; width:10px; height:10px; border-radius:50%;">
+                </div>端部釋放 (Release)
+            </div>
+            <div class="legend-item">
+                <div class="dot"
+                    style="background:transparent; border:1px solid #00ff00; width:10px; height:8px; border-radius:0;">
+                </div>支撐 (剛接/Fixed)
+            </div>
+            <div class="legend-item">
+                <div class="dot"
+                    style="background:transparent; border:none; width:12px; height:12px; border-radius:0; display:inline-flex; align-items:center; justify-content:center; vertical-align:middle;">
+                    <svg width="12" height="12" viewBox="0 0 100 100" style="display:block;">
+                        <polygon points="50,10 90,90 10,90" fill="none" stroke="#00ff00" stroke-width="15" />
+                    </svg>
+                </div>支撐 (鉸接/Hinged)
+            </div>
         </div>
     </div>
-    
+
     <div id="canvas-container"></div>
 
     <script type="module">
@@ -275,34 +587,38 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         let scene, renderer, controls;
-        let perspectiveCamera, orthoCamera, currentCamera; 
+        let perspectiveCamera, orthoCamera, currentCamera;
         let rootGroup, axesScene, axesCamera;
-        
+
         let isExtruded = false;
-        let showSectionLabels = false; 
-        let showFrameLabels = false; 
-        let showJointLabels = false; 
+        let showSectionLabels = false;
+        let showFrameLabels = false;
+        let showJointLabels = false;
         let showGrids = true;
         let showReleases = true;
         let showLoads = false;
+        let showColumns = true;
+        let showBeams = true;
+        let showWalls = true;
+        let showFloors = true;
         let currentLoadCase = "";
-        
+
         // 單位與換算相關變數
         let currentUnits = "未定義";
-        let currentLengthUnit = "M"; 
-        let currentForceUnit = "F"; 
-        let currentLoadUnit = "F/L²"; 
+        let currentLengthUnit = "M";
+        let currentForceUnit = "F";
+        let currentLoadUnit = "F/L²";
         let currentLineLoadUnit = "F/L";
-        let targetLoadUnitMode = "raw"; 
+        let targetLoadUnitMode = "raw";
 
         let globalScale = 1.0;
-        let currentLabelScale = 1.0; 
-        let selectedFile = null; 
+        let currentLabelScale = 1.0;
+        let selectedFile = null;
 
         // 裁切邊界 (Model Bounds)
-        let modelBounds = { minX:0, maxX:0, minY:0, maxY:0, minZ:0, maxZ:0 };
+        let modelBounds = { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 };
         // 當前裁切數值 (Clip Values)
-        let clipVals = { minX:-Infinity, maxX:Infinity, minY:-Infinity, maxY:Infinity, minZ:-Infinity, maxZ:Infinity };
+        let clipVals = { minX: -Infinity, maxX: Infinity, minY: -Infinity, maxY: Infinity, minZ: -Infinity, maxZ: Infinity };
         // 全域裁切平面 (Global Clipping Planes)
         let globalPlanes = [];
 
@@ -310,21 +626,22 @@
 
         const modelData = {
             rawBlocks: new Map(),
-            storiesRaw: [], 
-            storyMap: new Map(), 
-            storySeq: [], 
-            points: new Map(), 
-            lineDefs: new Map(), 
+            storiesRaw: [],
+            storyMap: new Map(),
+            storySeq: [],
+            points: new Map(),
+            lineDefs: new Map(),
             areaDefs: new Map(),
-            sectionDefs: new Map(), 
+            sectionDefs: new Map(),
             shellProps: new Map(),
-            gridDefs: [], 
-            lineAssigns: [], 
-            areaAssigns: [], 
+            gridDefs: [],
+            lineAssigns: [],
+            areaAssigns: [],
             pointAssigns: [],
-            loadCases: [], 
+            loadCases: [],
             areaLoads: new Map(),
-            lineLoads: new Map()
+            lineLoads: new Map(),
+            pointLoads: new Map() // 新增點載重
         };
 
         init();
@@ -346,13 +663,13 @@
         function init() {
             const container = document.getElementById('canvas-container');
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x000000); 
-            
+            scene.background = new THREE.Color(0x000000);
+
             perspectiveCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100000);
             perspectiveCamera.position.set(100, 100, 100);
 
             orthoCamera = new THREE.OrthographicCamera(-50, 50, 50, -50, 0.1, 100000);
-            
+
             currentCamera = perspectiveCamera;
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -375,12 +692,12 @@
             axesCamera = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 100);
             axesCamera.position.set(0, 0, 50); axesCamera.lookAt(0, 0, 0);
             const axesContainer = new THREE.Group();
-            axesContainer.rotation.x = -Math.PI / 2; 
+            axesContainer.rotation.x = -Math.PI / 2;
             axesScene.add(axesContainer);
             axesContainer.add(new THREE.AxesHelper(8));
-            const lx=createAxisLabel('X','#ff0000'); lx.position.set(9,0,0); axesContainer.add(lx);
-            const ly=createAxisLabel('Y','#00ff00'); ly.position.set(0,9,0); axesContainer.add(ly);
-            const lz=createAxisLabel('Z','#0066ff'); lz.position.set(0,0,9); axesContainer.add(lz);
+            const lx = createAxisLabel('X', '#ff0000'); lx.position.set(9, 0, 0); axesContainer.add(lx);
+            const ly = createAxisLabel('Y', '#00ff00'); ly.position.set(0, 9, 0); axesContainer.add(ly);
+            const lz = createAxisLabel('Z', '#0066ff'); lz.position.set(0, 0, 9); axesContainer.add(lz);
 
             // 初始化 6 個裁切平面
             globalPlanes = [
@@ -420,16 +737,17 @@
             renderer.render(scene, currentCamera);
 
             const axisSize = 150;
-            renderer.setViewport(0, 0, axisSize, axisSize);
-            renderer.setScissor(0, 0, axisSize, axisSize);
+            const axisX = window.innerWidth - axisSize;
+            renderer.setViewport(axisX, 0, axisSize, axisSize);
+            renderer.setScissor(axisX, 0, axisSize, axisSize);
             renderer.setScissorTest(true);
             renderer.clearDepth();
-            
+
             const camDir = new THREE.Vector3().subVectors(currentCamera.position, controls.target).normalize();
             axesCamera.position.copy(camDir.multiplyScalar(20));
-            axesCamera.lookAt(0, 0, 0); 
-            axesCamera.up.copy(currentCamera.up); 
-            
+            axesCamera.lookAt(0, 0, 0);
+            axesCamera.up.copy(currentCamera.up);
+
             renderer.render(axesScene, axesCamera);
             renderer.setScissorTest(false);
         }
@@ -464,7 +782,7 @@
                 const t = tokenize(line);
                 if (t[0].toUpperCase() === 'UNITS') {
                     currentUnits = t.slice(1).join(', ');
-                    
+
                     if (t.length >= 2) {
                         currentForceUnit = t[1].replace(/"/g, '').toUpperCase();
                     } else {
@@ -487,9 +805,9 @@
                 for (let line of stories) {
                     const t = tokenize(line);
                     let story = { name: t[1] };
-                    for(let i=2; i<t.length; i+=2) {
-                        if(t[i].toUpperCase() === 'HEIGHT') story.height = parseFloat(t[i+1]);
-                        if(t[i].toUpperCase() === 'ELEV') story.elev = parseFloat(t[i+1]);
+                    for (let i = 2; i < t.length; i += 2) {
+                        if (t[i].toUpperCase() === 'HEIGHT') story.height = parseFloat(t[i + 1]);
+                        if (t[i].toUpperCase() === 'ELEV') story.elev = parseFloat(t[i + 1]);
                     }
                     modelData.storiesRaw.push(story);
                 }
@@ -498,11 +816,11 @@
             const grids = modelData.rawBlocks.get('GRIDS') || [];
             for (let line of grids) {
                 const t = tokenize(line);
-                let label="", dir=null, coord=null;
-                for(let i=2; i<t.length; i+=2) {
-                    if(t[i].toUpperCase() === 'LABEL') label = t[i+1];
-                    if(t[i].toUpperCase() === 'DIR') dir = t[i+1].toUpperCase();
-                    if(t[i].toUpperCase() === 'COORD') coord = parseFloat(t[i+1]);
+                let label = "", dir = null, coord = null;
+                for (let i = 2; i < t.length; i += 2) {
+                    if (t[i].toUpperCase() === 'LABEL') label = t[i + 1];
+                    if (t[i].toUpperCase() === 'DIR') dir = t[i + 1].toUpperCase();
+                    if (t[i].toUpperCase() === 'COORD') coord = parseFloat(t[i + 1]);
                 }
                 if (dir && coord !== null) modelData.gridDefs.push({ label, dir, coord });
             }
@@ -528,7 +846,7 @@
                 for (let line of areas) {
                     const t = tokenize(line);
                     let nodes = [];
-                    for(let i=0; i<parseInt(t[3]); i++) nodes.push(t[4+i]);
+                    for (let i = 0; i < parseInt(t[3]); i++) nodes.push(t[4 + i]);
                     modelData.areaDefs.set(t[1], { type: t[2].toUpperCase(), nodes: nodes });
                 }
             }
@@ -537,10 +855,10 @@
             if (frames) {
                 for (let line of frames) {
                     const t = tokenize(line);
-                    let d=0.5, b=0.5; 
-                    for(let i=2; i<t.length; i+=2) {
-                        if(t[i].toUpperCase() === 'D') d = parseFloat(t[i+1]);
-                        if(t[i].toUpperCase() === 'B') b = parseFloat(t[i+1]);
+                    let d = 0.5, b = 0.5;
+                    for (let i = 2; i < t.length; i += 2) {
+                        if (t[i].toUpperCase() === 'D') d = parseFloat(t[i + 1]);
+                        if (t[i].toUpperCase() === 'B') b = parseFloat(t[i + 1]);
                     }
                     modelData.sectionDefs.set(t[1], { d, b });
                 }
@@ -551,8 +869,8 @@
                 for (let line of shells) {
                     const t = tokenize(line);
                     let pType = 'SLAB';
-                    for(let i=2; i<t.length; i+=2) {
-                        if(t[i].toUpperCase() === 'PROPTYPE') pType = t[i+1].toUpperCase();
+                    for (let i = 2; i < t.length; i += 2) {
+                        if (t[i].toUpperCase() === 'PROPTYPE') pType = t[i + 1].toUpperCase();
                     }
                     modelData.shellProps.set(t[1], pType);
                 }
@@ -563,9 +881,9 @@
                 for (let line of lAssigns) {
                     const t = tokenize(line);
                     let secId = null, releases = "";
-                    for(let i=3; i<t.length; i+=2) {
-                        if(t[i].toUpperCase() === 'SECTION') secId = t[i+1];
-                        if(t[i].toUpperCase() === 'RELEASE') releases = t[i+1].toUpperCase();
+                    for (let i = 3; i < t.length; i += 2) {
+                        if (t[i].toUpperCase() === 'SECTION') secId = t[i + 1];
+                        if (t[i].toUpperCase() === 'RELEASE') releases = t[i + 1].toUpperCase();
                     }
                     modelData.lineAssigns.push({ id: t[1], story: t[2], section: secId, releases: releases });
                 }
@@ -576,8 +894,8 @@
                 for (let line of aAssigns) {
                     const t = tokenize(line);
                     let areaSec = null;
-                    for(let i=3; i<t.length; i+=2) {
-                        if(t[i].toUpperCase() === 'SECTION') areaSec = t[i+1];
+                    for (let i = 3; i < t.length; i += 2) {
+                        if (t[i].toUpperCase() === 'SECTION') areaSec = t[i + 1];
                     }
                     modelData.areaAssigns.push({ id: t[1], story: t[2], section: areaSec });
                 }
@@ -588,14 +906,14 @@
                 for (let line of pAssigns) {
                     const t = tokenize(line);
                     let restraint = "";
-                    for(let i=3; i<t.length; i+=2) if(t[i].toUpperCase() === 'RESTRAINT') restraint = t[i+1];
+                    for (let i = 3; i < t.length; i += 2) if (t[i].toUpperCase() === 'RESTRAINT') restraint = t[i + 1];
                     modelData.pointAssigns.push({ id: t[1], story: t[2], restraint: restraint });
                 }
             }
 
             const staticLoads = modelData.rawBlocks.get('STATIC LOADS');
             if (staticLoads) {
-                for(let line of staticLoads) {
+                for (let line of staticLoads) {
                     const t = tokenize(line);
                     if (t[0].toUpperCase() === 'LOADCASE') {
                         modelData.loadCases.push(t[1]);
@@ -605,14 +923,14 @@
 
             const areaLoads = modelData.rawBlocks.get('AREA OBJECT LOADS');
             if (areaLoads) {
-                for(let line of areaLoads) {
+                for (let line of areaLoads) {
                     const t = tokenize(line);
                     const areaId = t[1];
                     const story = t[2];
                     let lc = null, val = 0;
-                    for(let i=3; i<t.length; i+=2) {
-                        if(t[i].toUpperCase() === 'LC') lc = t[i+1];
-                        if(t[i].toUpperCase() === 'FVAL') val = parseFloat(t[i+1]);
+                    for (let i = 3; i < t.length; i += 2) {
+                        if (t[i].toUpperCase() === 'LC') lc = t[i + 1];
+                        if (t[i].toUpperCase() === 'FVAL') val = parseFloat(t[i + 1]);
                     }
                     if (lc) {
                         if (!modelData.areaLoads.has(lc)) modelData.areaLoads.set(lc, new Map());
@@ -622,24 +940,52 @@
                 }
             }
 
-            // 新增: 解析線載重 (Line Loads)
+            // 解析線載重 (Line Loads)
             const lineLoads = modelData.rawBlocks.get('LINE OBJECT LOADS') || modelData.rawBlocks.get('FRAME OBJECT LOADS');
             if (lineLoads) {
-                for(let line of lineLoads) {
+                for (let line of lineLoads) {
                     const t = tokenize(line);
                     const lineId = t[1];
                     const story = t[2];
                     let lc = null, val = 0, type = "";
-                    for(let i=3; i<t.length; i+=2) {
-                        if(t[i].toUpperCase() === 'LC') lc = t[i+1];
-                        if(t[i].toUpperCase() === 'FVAL') val = parseFloat(t[i+1]);
-                        if(t[i].toUpperCase() === 'TYPE') type = t[i+1].toUpperCase();
+                    for (let i = 3; i < t.length; i += 2) {
+                        if (t[i].toUpperCase() === 'LC') lc = t[i + 1];
+                        if (t[i].toUpperCase() === 'FVAL') val = parseFloat(t[i + 1]);
+                        if (t[i].toUpperCase() === 'TYPE') type = t[i + 1].toUpperCase();
                     }
-                    // 只提取均佈載重 (UNIFF)
                     if (lc && type.includes("UNIF")) {
                         if (!modelData.lineLoads.has(lc)) modelData.lineLoads.set(lc, new Map());
                         const uniqueKey = `${lineId}_${story}`;
                         modelData.lineLoads.get(lc).set(uniqueKey, val);
+                    }
+                }
+            }
+
+            // 解析點載重 (Point Loads)
+            const pointLoads = modelData.rawBlocks.get('POINT OBJECT LOADS') || modelData.rawBlocks.get('JOINT OBJECT LOADS');
+            if (pointLoads) {
+                for (let line of pointLoads) {
+                    const t = tokenize(line);
+                    const pointId = t[1];
+                    const story = t[2];
+                    let lc = null;
+                    let forces = { fx: 0, fy: 0, fz: 0, mx: 0, my: 0, mz: 0 };
+
+                    for (let i = 3; i < t.length; i += 2) {
+                        const key = t[i].toUpperCase();
+                        const val = t[i + 1];
+                        if (key === 'LC') lc = val;
+                        else if (key === 'FX') forces.fx = parseFloat(val);
+                        else if (key === 'FY') forces.fy = parseFloat(val);
+                        else if (key === 'FZ') forces.fz = parseFloat(val);
+                        else if (key === 'MX') forces.mx = parseFloat(val);
+                        else if (key === 'MY') forces.my = parseFloat(val);
+                        else if (key === 'MZ') forces.mz = parseFloat(val);
+                    }
+
+                    if (lc) {
+                        if (!modelData.pointLoads.has(lc)) modelData.pointLoads.set(lc, []);
+                        modelData.pointLoads.get(lc).push({ pointId, story, forces });
                     }
                 }
             }
@@ -649,19 +995,19 @@
             const viewSel = document.getElementById('viewSelector');
             viewSel.innerHTML = '<option value="3D">3D 全景 (3D View)</option>';
             const stories = [...modelData.storySeq].reverse();
-            if(stories.length > 0) {
+            if (stories.length > 0) {
                 const grp = document.createElement('optgroup'); grp.label = "樓層平面 (Plans)";
                 stories.forEach(s => { const opt = document.createElement('option'); opt.value = `PLAN:${s}`; opt.innerText = `Story ${s}`; grp.appendChild(opt); });
                 viewSel.appendChild(grp);
             }
-            const xGrids = modelData.gridDefs.filter(g => g.dir === 'X').sort((a,b) => a.coord - b.coord);
-            if(xGrids.length > 0) {
+            const xGrids = modelData.gridDefs.filter(g => g.dir === 'X').sort((a, b) => a.coord - b.coord);
+            if (xGrids.length > 0) {
                 const grp = document.createElement('optgroup'); grp.label = "立面 (Elevations - Grid X)";
                 xGrids.forEach(g => { const opt = document.createElement('option'); opt.value = `ELEV_X:${g.label}:${g.coord}`; opt.innerText = `Grid ${g.label} (X=${g.coord})`; grp.appendChild(opt); });
                 viewSel.appendChild(grp);
             }
-            const yGrids = modelData.gridDefs.filter(g => g.dir === 'Y').sort((a,b) => a.coord - b.coord);
-            if(yGrids.length > 0) {
+            const yGrids = modelData.gridDefs.filter(g => g.dir === 'Y').sort((a, b) => a.coord - b.coord);
+            if (yGrids.length > 0) {
                 const grp = document.createElement('optgroup'); grp.label = "立面 (Elevations - Grid Y)";
                 yGrids.forEach(g => { const opt = document.createElement('option'); opt.value = `ELEV_Y:${g.label}:${g.coord}`; opt.innerText = `Grid ${g.label} (Y=${g.coord})`; grp.appendChild(opt); });
                 viewSel.appendChild(grp);
@@ -684,11 +1030,11 @@
         function parseE2K(content) {
             document.getElementById('status').innerText = "讀取資料中...";
             for (let key in modelData) {
-                if (key === 'rawBlocks' || key === 'areaLoads' || key === 'lineLoads') modelData[key].clear();
+                if (key === 'rawBlocks' || key === 'areaLoads' || key === 'lineLoads' || key === 'pointLoads') modelData[key].clear();
                 else if (Array.isArray(modelData[key])) modelData[key] = [];
                 else modelData[key].clear();
             }
-            
+
             // 重置單位變數
             currentUnits = "未定義";
             currentLengthUnit = "M";
@@ -702,7 +1048,7 @@
             calculateStoryElevations();
             calculateGlobalScale();
             updateSelectors();
-            updateClipInputs(true, true); 
+            updateClipInputs(true, true);
             build3DScene(true);
         }
 
@@ -725,26 +1071,26 @@
             let minX = Infinity, maxX = -Infinity;
             let minY = Infinity, maxY = -Infinity;
             let minZ = Infinity, maxZ = -Infinity;
-            if (modelData.points.size === 0) { 
-                globalScale = 1.0; 
-                modelBounds = { minX:-10, maxX:10, minY:-10, maxY:10, minZ:0, maxZ:10 };
-                return; 
+            if (modelData.points.size === 0) {
+                globalScale = 1.0;
+                modelBounds = { minX: -10, maxX: 10, minY: -10, maxY: 10, minZ: 0, maxZ: 10 };
+                return;
             }
-            
-            modelData.points.forEach(p => { 
-                minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); 
-                minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); 
+
+            modelData.points.forEach(p => {
+                minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+                minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
             });
-            
-            if (modelData.storyMap.size > 0) { 
-                const elevs = Array.from(modelData.storyMap.values()); 
-                minZ = Math.min(...elevs); maxZ = Math.max(...elevs); 
-            } else { 
-                minZ = 0; maxZ = 0; 
+
+            if (modelData.storyMap.size > 0) {
+                const elevs = Array.from(modelData.storyMap.values());
+                minZ = Math.min(...elevs); maxZ = Math.max(...elevs);
+            } else {
+                minZ = 0; maxZ = 0;
             }
-            
+
             modelBounds = { minX, maxX, minY, maxY, minZ, maxZ };
-            
+
             const maxDim = Math.max(maxX - minX, maxY - minY, maxZ - minZ);
             globalScale = maxDim > 0 ? maxDim / 50 : 1.0;
         }
@@ -752,62 +1098,88 @@
         function updateClipInputs(reset = false, updateDOM = false) {
             if (reset) {
                 clipVals = { ...modelBounds };
-                const pad = globalScale * 0.1;
+                const pad = globalScale * 2.0;
                 clipVals.minX -= pad; clipVals.maxX += pad;
                 clipVals.minY -= pad; clipVals.maxY += pad;
                 clipVals.minZ -= pad; clipVals.maxZ += pad;
             } else {
-                const valMinX = parseFloat(document.getElementById('clipMinX').value);
+                // Correct IDs to read FROM
+                const valMinX = parseFloat(document.getElementById('rangeMinX').value);
                 clipVals.minX = isNaN(valMinX) ? -Infinity : valMinX;
-
-                const valMaxX = parseFloat(document.getElementById('clipMaxX').value);
+                const valMaxX = parseFloat(document.getElementById('rangeMaxX').value);
                 clipVals.maxX = isNaN(valMaxX) ? Infinity : valMaxX;
 
-                const valMinY = parseFloat(document.getElementById('clipMinY').value);
+                const valMinY = parseFloat(document.getElementById('rangeMinY').value);
                 clipVals.minY = isNaN(valMinY) ? -Infinity : valMinY;
-
-                const valMaxY = parseFloat(document.getElementById('clipMaxY').value);
+                const valMaxY = parseFloat(document.getElementById('rangeMaxY').value);
                 clipVals.maxY = isNaN(valMaxY) ? Infinity : valMaxY;
 
-                const valMinZ = parseFloat(document.getElementById('clipMinZ').value);
+                const valMinZ = parseFloat(document.getElementById('rangeMinZ').value);
                 clipVals.minZ = isNaN(valMinZ) ? -Infinity : valMinZ;
-
-                const valMaxZ = parseFloat(document.getElementById('clipMaxZ').value);
+                const valMaxZ = parseFloat(document.getElementById('rangeMaxZ').value);
                 clipVals.maxZ = isNaN(valMaxZ) ? Infinity : valMaxZ;
+
+                // Avoid crossover
+                if (clipVals.minX > clipVals.maxX) { const t = clipVals.minX; clipVals.minX = clipVals.maxX; clipVals.maxX = t; }
+                if (clipVals.minY > clipVals.maxY) { const t = clipVals.minY; clipVals.minY = clipVals.maxY; clipVals.maxY = t; }
+                if (clipVals.minZ > clipVals.maxZ) { const t = clipVals.minZ; clipVals.minZ = clipVals.maxZ; clipVals.maxZ = t; }
             }
 
             if (updateDOM || reset) {
                 const pad = globalScale * 0.5;
-                ['X','Y','Z'].forEach(axis => {
-                    const minEl = document.getElementById('rangeMin'+axis);
-                    const maxEl = document.getElementById('rangeMax'+axis);
-                    const boundMin = modelBounds['min'+axis] - pad;
-                    const boundMax = modelBounds['max'+axis] + pad;
+                ['X', 'Y', 'Z'].forEach(axis => {
+                    const minEl = document.getElementById('rangeMin' + axis);
+                    const maxEl = document.getElementById('rangeMax' + axis);
+                    const boundMin = modelBounds['min' + axis] - pad;
+                    const boundMax = modelBounds['max' + axis] + pad;
+
                     minEl.min = maxEl.min = boundMin;
                     minEl.max = maxEl.max = boundMax;
-                    if(reset) {
-                        minEl.value = clipVals['min'+axis];
-                        maxEl.value = clipVals['max'+axis];
+
+                    if (reset) {
+                        minEl.value = clipVals['min' + axis];
+                        maxEl.value = clipVals['max' + axis];
                     }
                 });
             }
 
-            ['X','Y','Z'].forEach(axis => {
-                const minVal = clipVals['min'+axis];
-                const maxVal = clipVals['max'+axis];
-                
-                const numMin = document.getElementById('numMin'+axis);
-                const numMax = document.getElementById('numMax'+axis);
-                
-                if(document.activeElement !== numMin) numMin.value = minVal.toFixed(1);
-                if(document.activeElement !== numMax) numMax.value = maxVal.toFixed(1);
+            ['X', 'Y', 'Z'].forEach(axis => {
+                const minVal = clipVals['min' + axis];
+                const maxVal = clipVals['max' + axis];
 
-                const rangeMin = parseFloat(document.getElementById('rangeMin'+axis).min);
-                const rangeMax = parseFloat(document.getElementById('rangeMax'+axis).max);
-                const percentMin = ((minVal - rangeMin) / (rangeMax - rangeMin)) * 100;
-                const percentMax = ((maxVal - rangeMin) / (rangeMax - rangeMin)) * 100;
-                
-                const fill = document.getElementById('fill'+axis);
+                const numMin = document.getElementById('numMin' + axis);
+                const numMax = document.getElementById('numMax' + axis);
+
+                if (document.activeElement !== numMin) numMin.value = minVal.toFixed(1);
+                if (document.activeElement !== numMax) numMax.value = maxVal.toFixed(1);
+
+                // Sync sliders if we came here from numbers/reset
+                const rangeMin = document.getElementById('rangeMin' + axis);
+                const rangeMax = document.getElementById('rangeMax' + axis);
+                if (document.activeElement !== rangeMin) rangeMin.value = minVal;
+                if (document.activeElement !== rangeMax) rangeMax.value = maxVal;
+
+                const rMin = parseFloat(rangeMin.min);
+                const rMax = parseFloat(rangeMax.max);
+
+                const rangeSpan = rMax - rMin;
+                let percentMin = 0;
+                let percentMax = 100;
+
+                if (rangeSpan > 0.0001) {
+                    percentMin = ((minVal - rMin) / rangeSpan) * 100;
+                    percentMax = ((maxVal - rMin) / rangeSpan) * 100;
+                } else {
+                    // Flat model or single point
+                    percentMin = 0;
+                    percentMax = 100;
+                }
+
+                // Clamp percentages just in case
+                if (percentMin < 0) percentMin = 0;
+                if (percentMax > 100) percentMax = 100;
+
+                const fill = document.getElementById('fill' + axis);
                 fill.style.left = percentMin + "%";
                 fill.style.width = (percentMax - percentMin) + "%";
             });
@@ -822,29 +1194,29 @@
 
         function createSupportSymbol(restraintStr) {
             const r = (restraintStr || "").toUpperCase();
-            const isFixedXPlane = r.includes('RY'); 
+            const isFixedXPlane = r.includes('RY');
             const isFixedYPlane = r.includes('RX');
             const group = new THREE.Group();
             const h = globalScale * 0.8, w = globalScale * 0.4;
             const material = new THREE.LineBasicMaterial({ color: 0x00ff00 });
 
             const g1 = new THREE.BufferGeometry();
-            const v1 = isFixedXPlane ? [-w,0,0, -w,0,-h, w,0,-h, w,0,0, -w,0,0] : [0,0,0, -w,0,-h, w,0,-h, 0,0,0];
+            const v1 = isFixedXPlane ? [-w, 0, 0, -w, 0, -h, w, 0, -h, w, 0, 0, -w, 0, 0] : [0, 0, 0, -w, 0, -h, w, 0, -h, 0, 0, 0];
             g1.setAttribute('position', new THREE.Float32BufferAttribute(v1, 3));
             group.add(new THREE.Line(g1, material));
             const g2 = new THREE.BufferGeometry();
-            const v2 = isFixedYPlane ? [0,-w,0, 0,-w,-h, 0,w,-h, 0,w,0, 0,-w,0] : [0,0,0, 0,-w,-h, 0,w,-h, 0,0,0];
+            const v2 = isFixedYPlane ? [0, -w, 0, 0, -w, -h, 0, w, -h, 0, w, 0, 0, -w, 0] : [0, 0, 0, 0, -w, -h, 0, w, -h, 0, 0, 0];
             g2.setAttribute('position', new THREE.Float32BufferAttribute(v2, 3));
             group.add(new THREE.Line(g2, material));
             return group;
         }
 
         // --- 載重、網格用的標籤 ---
-        function createLabelSprite(text, color='#000', bgColor='rgba(255,255,255,0.9)', scaleMult=1.0, enableClipping=true) {
-            const resMult = 2; 
+        function createLabelSprite(text, color = '#000', bgColor = 'rgba(255,255,255,0.9)', scaleMult = 1.0, enableClipping = true) {
+            const resMult = 2;
             const fontSize = 100 * resMult;
             const fontFace = `bold ${fontSize}px Arial`;
-            
+
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
             tempCtx.font = fontFace;
@@ -852,9 +1224,9 @@
             const textWidth = textMetrics.width;
 
             const canvasHeight = 256 * resMult;
-            const radius = 110 * resMult; 
-            const padding = 80 * resMult; 
-            
+            const radius = 110 * resMult;
+            const padding = 80 * resMult;
+
             const minWidth = textWidth + padding * 2;
             const canvasWidth = Math.max(canvasHeight, minWidth);
             const aspectRatio = canvasWidth / canvasHeight;
@@ -875,9 +1247,9 @@
             if (aspectRatio <= 1.1) {
                 ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
             } else {
-                ctx.arc(radius + (10*resMult), cy, radius, 0.5 * Math.PI, 1.5 * Math.PI); 
-                ctx.lineTo(canvasWidth - radius - (10*resMult), cy - radius); 
-                ctx.arc(canvasWidth - radius - (10*resMult), cy, radius, 1.5 * Math.PI, 0.5 * Math.PI); 
+                ctx.arc(radius + (10 * resMult), cy, radius, 0.5 * Math.PI, 1.5 * Math.PI);
+                ctx.lineTo(canvasWidth - radius - (10 * resMult), cy - radius);
+                ctx.arc(canvasWidth - radius - (10 * resMult), cy, radius, 1.5 * Math.PI, 0.5 * Math.PI);
                 ctx.closePath();
             }
             ctx.fill();
@@ -899,7 +1271,7 @@
             if (enableClipping) {
                 mat.clippingPlanes = globalPlanes;
             }
-            
+
             const sprite = new THREE.Sprite(mat);
             const baseSize = globalScale * scaleMult * currentLabelScale;
             sprite.scale.set(baseSize * aspectRatio, baseSize, 1);
@@ -908,7 +1280,7 @@
         }
 
         // --- 斷面標籤專用 ---
-        function createSectionTextSprite(text, color='#ffffff', scaleMult=0.6) {
+        function createSectionTextSprite(text, color = '#ffffff', scaleMult = 0.6) {
             const resMult = 2;
             const fontSize = 100 * resMult;
             const fontFace = `bold ${fontSize}px Arial`;
@@ -918,9 +1290,9 @@
             tempCtx.font = fontFace;
             const textMetrics = tempCtx.measureText(text);
             const textWidth = textMetrics.width;
-            
-            const canvasWidth = textWidth + 20 * resMult; 
-            const canvasHeight = fontSize * 1.5; 
+
+            const canvasWidth = textWidth + 20 * resMult;
+            const canvasHeight = fontSize * 1.5;
             const aspectRatio = canvasWidth / canvasHeight;
 
             const canvas = document.createElement('canvas');
@@ -962,30 +1334,30 @@
             const length = v1.distanceTo(v2);
             if (length < 0.001) return group;
 
-            const step = scale * 2.0; 
+            const step = scale * 2.0;
             const count = Math.max(3, Math.floor(length / step));
-            const arrowHeight = scale * 1.5; 
-            
-            // 修正：顏色改為綠色 (0x00C832)，與標籤和圖例一致
-            const color = 0x00C832; 
+            const arrowHeight = scale * 1.5;
+
+            // 修正：顏色改為綠色 (0x00C832)
+            const color = 0x00C832;
             const lineMat = new THREE.LineBasicMaterial({ color: color, clippingPlanes: globalPlanes });
             const coneGeo = new THREE.ConeGeometry(scale * 0.1, scale * 0.3, 8);
             const coneMat = new THREE.MeshBasicMaterial({ color: color, clippingPlanes: globalPlanes });
 
-            const zOffset = new THREE.Vector3(0, 0, arrowHeight); 
+            const zOffset = new THREE.Vector3(0, 0, arrowHeight);
             const linePoints = [];
-            
+
             for (let i = 0; i <= count; i++) {
                 const t = i / count;
                 const pos = new THREE.Vector3().lerpVectors(v1, v2, t);
                 const topPos = pos.clone().add(zOffset);
-                
+
                 const shaftGeo = new THREE.BufferGeometry().setFromPoints([topPos, pos]);
                 group.add(new THREE.Line(shaftGeo, lineMat));
 
                 const cone = new THREE.Mesh(coneGeo, coneMat);
-                cone.position.copy(pos).add(new THREE.Vector3(0, 0, scale * 0.15)); 
-                cone.rotation.x = -Math.PI / 2; 
+                cone.position.copy(pos).add(new THREE.Vector3(0, 0, scale * 0.15));
+                cone.rotation.x = -Math.PI / 2;
                 group.add(cone);
 
                 linePoints.push(topPos.x, topPos.y, topPos.z);
@@ -998,7 +1370,102 @@
             return group;
         }
 
-        function formatDim(val, skipUnit=false) {
+        function createMomentSymbol(val, axis, scale) {
+            const group = new THREE.Group();
+            if (Math.abs(val) < 0.001) return group;
+
+            const radius = scale * 1.5;
+            const tubeRadius = scale * 0.05;
+            // Force Red color for all moments as requested
+            let color = 0xff0000;
+
+            const arc = Math.PI * 1.5; // 270 degrees
+            const torus = new THREE.Mesh(
+                new THREE.TorusGeometry(radius, tubeRadius, 8, 16, arc),
+                new THREE.MeshBasicMaterial({ color: color, clippingPlanes: globalPlanes })
+            );
+
+            // Arrow head
+            const coneH = scale * 0.4;
+            const cone = new THREE.Mesh(
+                new THREE.ConeGeometry(scale * 0.15, coneH, 8),
+                new THREE.MeshBasicMaterial({ color: color, clippingPlanes: globalPlanes })
+            );
+
+            // End of arc at (R*cos(arc), R*sin(arc), 0)
+            // arc=1.5PI -> (0, -R, 0). Tangent points +X. Cone points +Y.
+            cone.position.set(0, -radius, 0);
+            cone.rotation.z = -Math.PI / 2;
+
+            torus.add(cone);
+
+            if (val < 0) {
+                torus.scale.x = -1; // Flip direction
+            }
+
+            // Rotate group to align with axis
+            // Default Torus is in XY plane (Normal Z)
+            if (axis === 'x') {
+                group.rotation.y = Math.PI / 2;
+            } else if (axis === 'y') {
+                group.rotation.x = -Math.PI / 2;
+            }
+
+            group.add(torus);
+            return group;
+        }
+
+        function createPointLoadSymbol(pos, forces, scale) {
+            const group = new THREE.Group();
+            const fScale = scale * 2.5;
+
+            // Forces - All Red
+            if (Math.abs(forces.fx) > 0.001) {
+                const dir = new THREE.Vector3(Math.sign(forces.fx), 0, 0);
+                const len = fScale;
+                const origin = pos.clone().sub(dir.clone().multiplyScalar(len));
+                group.add(new THREE.ArrowHelper(dir, origin, len, 0xff0000, scale * 0.5, scale * 0.3));
+            }
+            if (Math.abs(forces.fy) > 0.001) {
+                const dir = new THREE.Vector3(0, Math.sign(forces.fy), 0);
+                const len = fScale;
+                const origin = pos.clone().sub(dir.clone().multiplyScalar(len));
+                group.add(new THREE.ArrowHelper(dir, origin, len, 0xff0000, scale * 0.5, scale * 0.3));
+            }
+            if (Math.abs(forces.fz) > 0.001) {
+                const dir = new THREE.Vector3(0, 0, Math.sign(forces.fz));
+                const len = fScale;
+                const origin = pos.clone().sub(dir.clone().multiplyScalar(len));
+                group.add(new THREE.ArrowHelper(dir, origin, len, 0xff0000, scale * 0.5, scale * 0.3));
+            }
+
+            // Moments
+            if (Math.abs(forces.mx) > 0.001) {
+                const m = createMomentSymbol(forces.mx, 'x', scale);
+                m.position.copy(pos);
+                group.add(m);
+            }
+            if (Math.abs(forces.my) > 0.001) {
+                const m = createMomentSymbol(forces.my, 'y', scale);
+                m.position.copy(pos);
+                group.add(m);
+            }
+            if (Math.abs(forces.mz) > 0.001) {
+                const m = createMomentSymbol(forces.mz, 'z', scale);
+                m.position.copy(pos);
+                group.add(m);
+            }
+
+            // Apply clipping to all arrow helpers in group
+            group.children.forEach(c => {
+                if (c.line && c.line.material) c.line.material.clippingPlanes = globalPlanes;
+                if (c.cone && c.cone.material) c.cone.material.clippingPlanes = globalPlanes;
+            });
+
+            return group;
+        }
+
+        function formatDim(val, skipUnit = false) {
             let valStr = "";
             if (currentLengthUnit === 'MM') {
                 valStr = val.toFixed(0);
@@ -1007,19 +1474,19 @@
             } else {
                 valStr = val.toFixed(2);
             }
-            return skipUnit ? valStr : `${valStr} ${currentLengthUnit}`; 
+            return skipUnit ? valStr : `${valStr} ${currentLengthUnit}`;
         }
 
         function createGridSystem(baseElev) {
             const g = new THREE.Group();
             const xG = modelData.gridDefs.filter(d => d.dir === 'X');
             const yG = modelData.gridDefs.filter(d => d.dir === 'Y');
-            
+
             if (!xG.length && !yG.length) return g;
 
             const xC = xG.map(d => d.coord);
             const yC = yG.map(d => d.coord);
-            
+
             const gridMinX = xC.length ? Math.min(...xC) : 0;
             const gridMaxX = xC.length ? Math.max(...xC) : 0;
             const gridMinY = yC.length ? Math.min(...yC) : 0;
@@ -1027,7 +1494,7 @@
 
             let pMinX = Infinity, pMaxX = -Infinity;
             let pMinY = Infinity, pMaxY = -Infinity;
-            
+
             if (modelData.points.size > 0) {
                 modelData.points.forEach(p => {
                     if (p.x < pMinX) pMinX = p.x;
@@ -1040,36 +1507,36 @@
                 pMinY = gridMinY; pMaxY = gridMaxY;
             }
 
-            const margin = globalScale * 1.0; 
+            const margin = globalScale * 1.0;
             const limitMinX = Math.min(gridMinX, pMinX) - margin;
             const limitMaxX = Math.max(gridMaxX, pMaxX) + margin;
             const limitMinY = Math.min(gridMinY, pMinY) - margin;
             const limitMaxY = Math.max(gridMaxY, pMaxY) + margin;
 
-            const dimOffset = globalScale * 1.5;   
-            const bubbleOffset = globalScale * 3.5; 
+            const dimOffset = globalScale * 1.5;
+            const bubbleOffset = globalScale * 3.5;
 
             const pts = [];
             const yBubbleTop = limitMaxY + bubbleOffset;
             const yBubbleBot = limitMinY - bubbleOffset;
-            
+
             xG.forEach(d => {
                 // 網格線與氣泡不裁切 (enableClipping = false)
                 pts.push(d.coord, yBubbleBot, baseElev, d.coord, yBubbleTop, baseElev);
-                let s1 = createLabelSprite(d.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false); 
+                let s1 = createLabelSprite(d.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false);
                 s1.position.set(d.coord, yBubbleBot, baseElev); g.add(s1);
-                let s2 = createLabelSprite(d.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false); 
+                let s2 = createLabelSprite(d.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false);
                 s2.position.set(d.coord, yBubbleTop, baseElev); g.add(s2);
             });
 
-            const xDimY_Bot = limitMinY - dimOffset; 
+            const xDimY_Bot = limitMinY - dimOffset;
             const xDimPts = [];
             xC.sort((a, b) => a - b);
             for (let i = 0; i < xC.length - 1; i++) {
                 const x1 = xC[i], x2 = xC[i + 1];
                 if (Math.abs(x2 - x1) < 0.001) continue;
-                const midX = (x1+x2)/2;
-                
+                const midX = (x1 + x2) / 2;
+
                 xDimPts.push(x1, xDimY_Bot, baseElev, x2, xDimY_Bot, baseElev);
                 let txt = createLabelSprite(formatDim(Math.abs(x2 - x1)), '#ffff00', 'rgba(0,0,0,0.6)', 0.6, false);
                 txt.position.set(midX, xDimY_Bot, baseElev);
@@ -1077,26 +1544,26 @@
             }
             const xDimGeo = new THREE.BufferGeometry();
             xDimGeo.setAttribute('position', new THREE.Float32BufferAttribute(xDimPts, 3));
-            g.add(new THREE.LineSegments(xDimGeo, new THREE.LineBasicMaterial({ color: 0xffff00 }))); 
+            g.add(new THREE.LineSegments(xDimGeo, new THREE.LineBasicMaterial({ color: 0xffff00 })));
 
             const xBubbleRight = limitMaxX + bubbleOffset;
             const xBubbleLeft = limitMinX - bubbleOffset;
 
             yG.forEach(d => {
                 pts.push(xBubbleLeft, d.coord, baseElev, xBubbleRight, d.coord, baseElev);
-                let s1 = createLabelSprite(d.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false); 
+                let s1 = createLabelSprite(d.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false);
                 s1.position.set(xBubbleLeft, d.coord, baseElev); g.add(s1);
-                let s2 = createLabelSprite(d.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false); 
+                let s2 = createLabelSprite(d.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false);
                 s2.position.set(xBubbleRight, d.coord, baseElev); g.add(s2);
             });
 
-            const yDimX_Left = limitMinX - dimOffset; 
+            const yDimX_Left = limitMinX - dimOffset;
             const yDimPts = [];
             yC.sort((a, b) => a - b);
             for (let i = 0; i < yC.length - 1; i++) {
                 const y1 = yC[i], y2 = yC[i + 1];
                 if (Math.abs(y2 - y1) < 0.001) continue;
-                const midY = (y1+y2)/2;
+                const midY = (y1 + y2) / 2;
 
                 yDimPts.push(yDimX_Left, y1, baseElev, yDimX_Left, y2, baseElev);
                 let txt = createLabelSprite(formatDim(Math.abs(y2 - y1)), '#ffff00', 'rgba(0,0,0,0.6)', 0.6, false);
@@ -1105,12 +1572,12 @@
             }
             const yDimGeo = new THREE.BufferGeometry();
             yDimGeo.setAttribute('position', new THREE.Float32BufferAttribute(yDimPts, 3));
-            g.add(new THREE.LineSegments(yDimGeo, new THREE.LineBasicMaterial({ color: 0xffff00 }))); 
+            g.add(new THREE.LineSegments(yDimGeo, new THREE.LineBasicMaterial({ color: 0xffff00 })));
 
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-            g.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0x666666, transparent: true, opacity: 0.3 }))); 
-            
+            g.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0x666666, transparent: true, opacity: 0.3 })));
+
             return g;
         }
 
@@ -1118,65 +1585,65 @@
             const g = new THREE.Group();
             const minZ = modelData.storyMap.size > 0 ? Math.min(...modelData.storyMap.values()) : 0;
             const maxZ = modelData.storyMap.size > 0 ? Math.max(...modelData.storyMap.values()) : 0;
-            const viewCoord = parseFloat(viewValue); 
+            const viewCoord = parseFloat(viewValue);
 
             let grids = [];
-            let isXView = (viewType === 'ELEV_X'); 
-            
+            let isXView = (viewType === 'ELEV_X');
+
             if (isXView) {
-                grids = modelData.gridDefs.filter(d => d.dir === 'Y').sort((a,b)=>a.coord-b.coord);
+                grids = modelData.gridDefs.filter(d => d.dir === 'Y').sort((a, b) => a.coord - b.coord);
             } else {
-                grids = modelData.gridDefs.filter(d => d.dir === 'X').sort((a,b)=>a.coord-b.coord);
+                grids = modelData.gridDefs.filter(d => d.dir === 'X').sort((a, b) => a.coord - b.coord);
             }
 
             if (grids.length === 0) return g;
 
             const gridLinesPos = [];
             const dimLinesPos = [];
-            const bubbleZ = maxZ + globalScale * 4.0; 
-            const dimZ = maxZ + globalScale * 2.0;    
+            const bubbleZ = maxZ + globalScale * 4.0;
+            const dimZ = maxZ + globalScale * 2.0;
 
             grids.forEach(gr => {
                 const c = gr.coord;
                 if (isXView) {
-                    if (!isVisible({x: viewCoord, y: c, z: (minZ+maxZ)/2}, {x: viewCoord, y: c, z: (minZ+maxZ)/2}, null)) return;
+                    if (!isVisible({ x: viewCoord, y: c, z: (minZ + maxZ) / 2 }, { x: viewCoord, y: c, z: (minZ + maxZ) / 2 }, null)) return;
                     gridLinesPos.push(viewCoord, c, minZ - globalScale);
                     gridLinesPos.push(viewCoord, c, bubbleZ);
-                    let s = createLabelSprite(gr.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false); 
+                    let s = createLabelSprite(gr.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false);
                     s.position.set(viewCoord, c, bubbleZ); g.add(s);
                 } else {
-                    if (!isVisible({x: c, y: viewCoord, z: (minZ+maxZ)/2}, {x: c, y: viewCoord, z: (minZ+maxZ)/2}, null)) return;
+                    if (!isVisible({ x: c, y: viewCoord, z: (minZ + maxZ) / 2 }, { x: c, y: viewCoord, z: (minZ + maxZ) / 2 }, null)) return;
                     gridLinesPos.push(c, viewCoord, minZ - globalScale);
                     gridLinesPos.push(c, viewCoord, bubbleZ);
-                    let s = createLabelSprite(gr.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false); 
+                    let s = createLabelSprite(gr.label, '#000', 'rgba(255,255,255,0.9)', 1.0, false);
                     s.position.set(c, viewCoord, bubbleZ); g.add(s);
                 }
             });
 
-            for(let i=0; i<grids.length-1; i++) {
+            for (let i = 0; i < grids.length - 1; i++) {
                 const g1 = grids[i];
-                const g2 = grids[i+1];
+                const g2 = grids[i + 1];
                 const dist = Math.abs(g2.coord - g1.coord);
                 const mid = (g1.coord + g2.coord) / 2;
-                if (dist < 0.001) continue; 
+                if (dist < 0.001) continue;
 
                 if (isXView) {
                     dimLinesPos.push(viewCoord, g1.coord, dimZ); dimLinesPos.push(viewCoord, g2.coord, dimZ);
-                    let txt = createLabelSprite(formatDim(dist), '#ffff00', 'rgba(0,0,0,0.5)', 0.6, false); 
+                    let txt = createLabelSprite(formatDim(dist), '#ffff00', 'rgba(0,0,0,0.5)', 0.6, false);
                     txt.position.set(viewCoord, mid, dimZ); g.add(txt);
                 } else {
                     dimLinesPos.push(g1.coord, viewCoord, dimZ); dimLinesPos.push(g2.coord, viewCoord, dimZ);
-                    let txt = createLabelSprite(formatDim(dist), '#ffff00', 'rgba(0,0,0,0.5)', 0.6, false); 
+                    let txt = createLabelSprite(formatDim(dist), '#ffff00', 'rgba(0,0,0,0.5)', 0.6, false);
                     txt.position.set(mid, viewCoord, dimZ); g.add(txt);
                 }
             }
 
-            const matGrid = new THREE.LineBasicMaterial({color: 0x888888, transparent: true, opacity: 0.5});
+            const matGrid = new THREE.LineBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.5 });
             const geoGrid = new THREE.BufferGeometry();
             geoGrid.setAttribute('position', new THREE.Float32BufferAttribute(gridLinesPos, 3));
             g.add(new THREE.LineSegments(geoGrid, matGrid));
 
-            const matDim = new THREE.LineBasicMaterial({color: 0xffff00});
+            const matDim = new THREE.LineBasicMaterial({ color: 0xffff00 });
             const geoDim = new THREE.BufferGeometry();
             geoDim.setAttribute('position', new THREE.Float32BufferAttribute(dimLinesPos, 3));
             g.add(new THREE.LineSegments(geoDim, matDim));
@@ -1188,12 +1655,12 @@
         function createExtrudedBar(p1, p2, width, depth, color) {
             const vec = new THREE.Vector3().subVectors(p2, p1);
             const len = vec.length();
-            if(len < 0.001) return new THREE.Object3D();
+            if (len < 0.001) return new THREE.Object3D();
             const geo = new THREE.BoxGeometry(width, depth, len);
             const mat = new THREE.MeshLambertMaterial({ color: color });
             // 啟用裁切
             mat.clippingPlanes = globalPlanes;
-            
+
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.copy(new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5));
             mesh.lookAt(p2);
@@ -1259,8 +1726,8 @@
 
             if (targetMode === "t_m2") return toPascal / 9806.65;
             if (targetMode === "kgf_cm2") return toPascal / 98066.5;
-            
-            return 1.0; 
+
+            return 1.0;
         }
 
         function getLineLoadConversionFactor(targetMode) {
@@ -1291,40 +1758,52 @@
                 // 1 kgf/cm = 9.80665 N / 0.01 m = 980.665 N/m
                 return toNpM / 980.665;
             }
-            
-            return 1.0; 
+
+            return 1.0;
         }
 
         function build3DScene(resetCamera = false) {
             if (rootGroup) scene.remove(rootGroup);
             rootGroup = new THREE.Group();
 
-            let counts = { beam:0, col:0, floor:0, wall:0, support:0 };
+            let counts = { beam: 0, col: 0, floor: 0, wall: 0, support: 0 };
 
             let currentCaseLoads = null;
             let currentLineLoads = null;
+            let currentPointLoads = null; // 點載重
+
             let minLoad = Infinity, maxLoad = -Infinity;
             let conversionFactor = 1.0;
             let lineConversionFactor = 1.0;
             let displayUnitLabel = currentLoadUnit;
             let displayLineUnitLabel = currentLineLoadUnit;
 
+            let pointForceUnit = currentForceUnit;
+            let pointMomentUnit = `${currentForceUnit}-${currentLengthUnit}`;
+
             if (targetLoadUnitMode !== "raw") {
                 conversionFactor = getLoadConversionFactor(targetLoadUnitMode);
                 lineConversionFactor = getLineLoadConversionFactor(targetLoadUnitMode);
-                if (targetLoadUnitMode === "t_m2") { displayUnitLabel = "t/m²"; displayLineUnitLabel = "t/m"; }
-                else if (targetLoadUnitMode === "kgf_cm2") { displayUnitLabel = "kgf/cm²"; displayLineUnitLabel = "kgf/cm"; }
+                if (targetLoadUnitMode === "t_m2") {
+                    displayUnitLabel = "t/m²"; displayLineUnitLabel = "t/m";
+                    pointForceUnit = "t"; pointMomentUnit = "t-m";
+                }
+                else if (targetLoadUnitMode === "kgf_cm2") {
+                    displayUnitLabel = "kgf/cm²"; displayLineUnitLabel = "kgf/cm";
+                    pointForceUnit = "kgf"; pointMomentUnit = "kgf-cm";
+                }
             }
 
             if (showLoads && currentLoadCase) {
                 currentCaseLoads = modelData.areaLoads.get(currentLoadCase);
                 currentLineLoads = modelData.lineLoads.get(currentLoadCase);
+                currentPointLoads = modelData.pointLoads.get(currentLoadCase);
 
                 if (currentCaseLoads) {
                     for (let val of currentCaseLoads.values()) {
                         const convVal = val * conversionFactor;
-                        if(convVal < minLoad) minLoad = convVal;
-                        if(convVal > maxLoad) maxLoad = convVal;
+                        if (convVal < minLoad) minLoad = convVal;
+                        if (convVal > maxLoad) maxLoad = convVal;
                     }
                     if (minLoad === Infinity) { minLoad = 0; maxLoad = 0; }
                     document.getElementById('loadLegend').style.display = 'block';
@@ -1346,12 +1825,12 @@
                 if (topH === undefined) continue;
                 const p1 = modelData.points.get(def.nodes[0]), p2 = modelData.points.get(def.nodes[1]);
                 if (!p1 || !p2) continue;
-                const isCol = def.type.includes('COLUMN') || (Math.abs(p1.x-p2.x)<0.01 && Math.abs(p1.y-p2.y)<0.01);
+                const isCol = def.type.includes('COLUMN') || (Math.abs(p1.x - p2.x) < 0.01 && Math.abs(p1.y - p2.y) < 0.01);
                 let v1, v2;
                 if (isCol) {
                     const idx = modelData.storySeq.indexOf(a.story);
-                    if (idx<=0) continue;
-                    v1 = new THREE.Vector3(p1.x, p1.y, modelData.storyMap.get(modelData.storySeq[idx-1]));
+                    if (idx <= 0) continue;
+                    v1 = new THREE.Vector3(p1.x, p1.y, modelData.storyMap.get(modelData.storySeq[idx - 1]));
                     v2 = new THREE.Vector3(p2.x, p2.y, topH);
                 } else {
                     v1 = new THREE.Vector3(p1.x, p1.y, topH);
@@ -1359,35 +1838,41 @@
                 }
 
                 if (!isVisible(v1, v2, a.story)) continue;
-                if(isCol) counts.col++; else counts.beam++;
+                if (isCol) {
+                    if (!showColumns) continue;
+                    counts.col++;
+                } else {
+                    if (!showBeams) continue;
+                    counts.beam++;
+                }
 
                 let drawStart = v1.clone(), drawEnd = v2.clone();
                 const rel = a.releases || "";
                 if (showReleases && rel.includes("M3")) {
                     const dist = v1.distanceTo(v2);
-                    const offset = Math.min(globalScale * 0.5, dist * 0.25); 
+                    const offset = Math.min(globalScale * 0.5, dist * 0.25);
                     const dir = new THREE.Vector3().subVectors(v2, v1).normalize();
                     const sphereRadius = globalScale * 0.15;
-                    const matSphere = new THREE.MeshBasicMaterial({color:0x00ff00, clippingPlanes: globalPlanes});
+                    const matSphere = new THREE.MeshBasicMaterial({ color: 0x00ff00, clippingPlanes: globalPlanes });
                     if (rel.includes("M3I")) {
                         const hingePos = v1.clone().add(dir.clone().multiplyScalar(offset));
-                        const sp = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius,8,8), matSphere);
+                        const sp = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius, 8, 8), matSphere);
                         sp.position.copy(hingePos); rootGroup.add(sp); drawStart.copy(hingePos);
                     }
                     if (rel.includes("M3J")) {
                         const hingePos = v2.clone().sub(dir.clone().multiplyScalar(offset));
-                        const sp = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius,8,8), matSphere);
+                        const sp = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius, 8, 8), matSphere);
                         sp.position.copy(hingePos); rootGroup.add(sp); drawEnd.copy(hingePos);
                     }
                 }
 
                 if (isExtruded) {
-                    let d=0.4, b=0.4;
-                    if(a.section) { const s=modelData.sectionDefs.get(a.section); if(s){d=s.d; b=s.b;} }
-                    rootGroup.add(createExtrudedBar(drawStart, drawEnd, b, d, isCol?0xff8800:0x00ffff));
+                    let d = 0.4, b = 0.4;
+                    if (a.section) { const s = modelData.sectionDefs.get(a.section); if (s) { d = s.d; b = s.b; } }
+                    rootGroup.add(createExtrudedBar(drawStart, drawEnd, b, d, isCol ? 0xff8800 : 0x00ffff));
                 } else {
                     const geo = new THREE.BufferGeometry().setFromPoints([drawStart, drawEnd]);
-                    rootGroup.add(new THREE.Line(geo, new THREE.LineBasicMaterial({color: isCol?0xff8800:0x00ffff, clippingPlanes: globalPlanes})));
+                    rootGroup.add(new THREE.Line(geo, new THREE.LineBasicMaterial({ color: isCol ? 0xff8800 : 0x00ffff, clippingPlanes: globalPlanes })));
                 }
 
                 const mid = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
@@ -1407,10 +1892,10 @@
                             const lbl = createSectionTextSprite(sectionText, '#ffffff', 0.5);
                             lbl.material.rotation = angle;
                             const pos = mid.clone();
-                            if (isCol) { lbl.material.rotation = Math.PI / 2; pos.x += globalScale * 0.2; } 
-                            else { 
-                                pos.z += globalScale * 0.2; 
-                                if(currentViewMode.type === 'PLAN') pos.add(new THREE.Vector3(-dy, dx, 0).normalize().multiplyScalar(globalScale * 0.15));
+                            if (isCol) { lbl.material.rotation = Math.PI / 2; pos.x += globalScale * 0.2; }
+                            else {
+                                pos.z += globalScale * 0.2;
+                                if (currentViewMode.type === 'PLAN') pos.add(new THREE.Vector3(-dy, dx, 0).normalize().multiplyScalar(globalScale * 0.15));
                             }
                             lbl.position.copy(pos); rootGroup.add(lbl);
                         }
@@ -1422,10 +1907,10 @@
                         const lbl = createSectionTextSprite(a.id, '#ffff00', 0.5);
                         lbl.material.rotation = angle;
                         const pos = mid.clone();
-                        if (isCol) { lbl.material.rotation = Math.PI / 2; pos.x -= globalScale * 0.2; } 
-                        else { 
-                            pos.z -= showSectionLabels ? globalScale * 0.2 : 0; 
-                            if(currentViewMode.type === 'PLAN') pos.add(new THREE.Vector3(dy, -dx, 0).normalize().multiplyScalar(globalScale * 0.15));
+                        if (isCol) { lbl.material.rotation = Math.PI / 2; pos.x -= globalScale * 0.2; }
+                        else {
+                            pos.z -= showSectionLabels ? globalScale * 0.2 : 0;
+                            if (currentViewMode.type === 'PLAN') pos.add(new THREE.Vector3(dy, -dx, 0).normalize().multiplyScalar(globalScale * 0.15));
                         }
                         lbl.position.copy(pos); rootGroup.add(lbl);
                     }
@@ -1436,10 +1921,10 @@
                     if (isCol) { jList.push({ id: def.nodes[1], pos: v2 }); } else { jList.push({ id: def.nodes[0], pos: v1 }); jList.push({ id: def.nodes[1], pos: v2 }); }
                     jList.forEach(j => {
                         if (!isVisible(j.pos, j.pos, null)) return;
-                        const key = `${j.id}_${Math.round(j.pos.x*100)}_${Math.round(j.pos.y*100)}_${Math.round(j.pos.z*100)}`;
+                        const key = `${j.id}_${Math.round(j.pos.x * 100)}_${Math.round(j.pos.y * 100)}_${Math.round(j.pos.z * 100)}`;
                         if (!drawnJoints.has(key)) {
                             drawnJoints.add(key);
-                            const lbl = createSectionTextSprite(j.id, '#00ff00', 0.4); 
+                            const lbl = createSectionTextSprite(j.id, '#00ff00', 0.4);
                             lbl.position.copy(j.pos); rootGroup.add(lbl);
                         }
                     });
@@ -1455,19 +1940,18 @@
                         rootGroup.add(arrows);
 
                         const labelText = `${val.toFixed(2)} ${displayLineUnitLabel}`;
-                        
+
                         // 修正：使用綠色背景，enableClipping=false
                         const lbl = createLabelSprite(labelText, '#fff', 'rgba(0, 200, 50, 0.9)', 0.75, false);
                         lbl.material.rotation = angle;
-                        
+
                         const pos = mid.clone();
-                        if (isCol) { 
-                            lbl.material.rotation = Math.PI / 2; pos.x += globalScale * 0.4; 
-                        } else { 
+                        if (isCol) {
+                            lbl.material.rotation = Math.PI / 2; pos.x += globalScale * 0.4;
+                        } else {
                             // 修正：往上移至箭頭頂端上方 (原本是 0.5，現在改為 1.8)
-                            // 箭頭高度在 createDistributedLoadSymbol 中是 scale * 1.5
-                            pos.z += globalScale * 1.8; 
-                            if(currentViewMode.type === 'PLAN') pos.add(new THREE.Vector3(-dy, dx, 0).normalize().multiplyScalar(globalScale * 0.15));
+                            pos.z += globalScale * 1.8;
+                            if (currentViewMode.type === 'PLAN') pos.add(new THREE.Vector3(-dy, dx, 0).normalize().multiplyScalar(globalScale * 0.15));
                         }
                         lbl.position.copy(pos);
                         rootGroup.add(lbl);
@@ -1479,9 +1963,9 @@
                 const def = modelData.areaDefs.get(a.id);
                 if (!def) continue;
                 const topH = modelData.storyMap.get(a.story);
-                if (topH===undefined) continue;
-                const pts = def.nodes.map(n=>modelData.points.get(n)).filter(p=>p);
-                if (pts.length<2) continue; 
+                if (topH === undefined) continue;
+                const pts = def.nodes.map(n => modelData.points.get(n)).filter(p => p);
+                if (pts.length < 2) continue;
                 let vCheck1 = new THREE.Vector3(pts[0].x, pts[0].y, topH);
                 let vCheck2 = new THREE.Vector3(pts[1].x, pts[1].y, topH);
                 if (!isVisible(vCheck1, vCheck2, a.story)) continue;
@@ -1489,7 +1973,7 @@
                 let isWall = false;
                 if (a.section) { const type = modelData.shellProps.get(a.section); if (type === 'WALL') isWall = true; }
                 const uniquePts = [];
-                pts.forEach(p => { if(!uniquePts.some(up => Math.abs(up.x-p.x)<0.001 && Math.abs(up.y-p.y)<0.001)) uniquePts.push(p); });
+                pts.forEach(p => { if (!uniquePts.some(up => Math.abs(up.x - p.x) < 0.001 && Math.abs(up.y - p.y) < 0.001)) uniquePts.push(p); });
                 if (!isWall && uniquePts.length === 2 && pts.length >= 2) isWall = true;
 
                 let floorColor = new THREE.Color(0xcccccc);
@@ -1502,30 +1986,36 @@
                     }
                 }
 
+                if (isWall) {
+                    if (!showWalls) continue;
+                } else {
+                    if (!showFloors) continue;
+                }
+
                 if (isWall && uniquePts.length >= 2) {
                     const idx = modelData.storySeq.indexOf(a.story);
-                    if (idx<=0) continue;
-                    const botH = modelData.storyMap.get(modelData.storySeq[idx-1]);
-                    const p1 = uniquePts[0], p2 = uniquePts[1]; 
+                    if (idx <= 0) continue;
+                    const botH = modelData.storyMap.get(modelData.storySeq[idx - 1]);
+                    const p1 = uniquePts[0], p2 = uniquePts[1];
                     const vertices = [p1.x, p1.y, botH, p2.x, p2.y, botH, p2.x, p2.y, topH, p2.x, p2.y, topH, p1.x, p1.y, topH, p1.x, p1.y, botH];
                     const geo = new THREE.BufferGeometry();
                     geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3)); geo.computeVertexNormals();
-                    const mat = new THREE.MeshLambertMaterial({color:0xff3333, opacity:0.8, transparent:true, side:THREE.DoubleSide, clippingPlanes: globalPlanes});
+                    const mat = new THREE.MeshLambertMaterial({ color: 0xff3333, opacity: 0.8, transparent: true, side: THREE.DoubleSide, clippingPlanes: globalPlanes });
                     rootGroup.add(new THREE.Mesh(geo, mat)); counts.wall++;
                 } else if (uniquePts.length >= 3) {
-                    const v=[]; 
-                    for(let i=1;i<uniquePts.length-1;i++) { v.push(uniquePts[0].x,uniquePts[0].y,topH, uniquePts[i].x,uniquePts[i].y,topH, uniquePts[i+1].x,uniquePts[i+1].y,topH); }
-                    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(v,3)); geo.computeVertexNormals();
-                    const mat = new THREE.MeshLambertMaterial({color: floorColor, opacity:0.5, transparent:true, side:THREE.DoubleSide, depthWrite:false, clippingPlanes: globalPlanes});
+                    const v = [];
+                    for (let i = 1; i < uniquePts.length - 1; i++) { v.push(uniquePts[0].x, uniquePts[0].y, topH, uniquePts[i].x, uniquePts[i].y, topH, uniquePts[i + 1].x, uniquePts[i + 1].y, topH); }
+                    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); geo.computeVertexNormals();
+                    const mat = new THREE.MeshLambertMaterial({ color: floorColor, opacity: 0.5, transparent: true, side: THREE.DoubleSide, depthWrite: false, clippingPlanes: globalPlanes });
                     rootGroup.add(new THREE.Mesh(geo, mat)); counts.floor++;
 
                     if (displayVal !== null) {
-                        let cx=0, cy=0;
-                        uniquePts.forEach(p => { cx+=p.x; cy+=p.y; });
+                        let cx = 0, cy = 0;
+                        uniquePts.forEach(p => { cx += p.x; cy += p.y; });
                         cx /= uniquePts.length; cy /= uniquePts.length;
                         const labelText = `${displayVal.toFixed(2)} ${displayUnitLabel}`;
                         const lbl = createLabelSprite(labelText, '#000', 'rgba(255,255,200,0.9)', 0.75, false);
-                        lbl.position.set(cx, cy, topH + globalScale*0.1); 
+                        lbl.position.set(cx, cy, topH + globalScale * 0.1);
                         rootGroup.add(lbl);
                     }
                 }
@@ -1535,7 +2025,7 @@
                 if (!a.restraint || a.restraint.trim().length === 0) continue;
                 const h = modelData.storyMap.get(a.story);
                 const p = modelData.points.get(a.id);
-                if (!p || h===undefined) continue;
+                if (!p || h === undefined) continue;
                 let v1 = new THREE.Vector3(p.x, p.y, h);
                 if (!isVisible(v1, v1, a.story)) continue;
                 const symbol = createSupportSymbol(a.restraint);
@@ -1544,7 +2034,47 @@
                 counts.support++;
             }
 
-            if(showGrids) {
+            // 繪製點載重 (Point Loads)
+            if (showLoads && currentPointLoads) {
+                currentPointLoads.forEach(pl => {
+                    const h = modelData.storyMap.get(pl.story);
+                    const p = modelData.points.get(pl.pointId);
+                    if (p && h !== undefined) {
+                        const pos = new THREE.Vector3(p.x, p.y, h);
+                        // Check visibility
+                        if (!isVisible(pos, pos, pl.story)) return;
+
+                        // 轉換單位
+                        // 注意：點載重力單位與面載重可能不同，但我們簡化使用主要 Force Unit
+                        // 這裡可以再細化，但目前先用通用轉換係數
+                        // 若是力 (F)，則用 F 單位顯示
+                        let valStr = "";
+                        const comps = [];
+                        if (Math.abs(pl.forces.fx) > 0.001) comps.push(`Fx:${pl.forces.fx.toFixed(1)}${pointForceUnit}`);
+                        if (Math.abs(pl.forces.fy) > 0.001) comps.push(`Fy:${pl.forces.fy.toFixed(1)}${pointForceUnit}`);
+                        if (Math.abs(pl.forces.fz) > 0.001) comps.push(`Fz:${pl.forces.fz.toFixed(1)}${pointForceUnit}`);
+                        if (Math.abs(pl.forces.mx) > 0.001) comps.push(`Mx:${pl.forces.mx.toFixed(1)}${pointMomentUnit}`);
+                        if (Math.abs(pl.forces.my) > 0.001) comps.push(`My:${pl.forces.my.toFixed(1)}${pointMomentUnit}`);
+                        if (Math.abs(pl.forces.mz) > 0.001) comps.push(`Mz:${pl.forces.mz.toFixed(1)}${pointMomentUnit}`);
+                        valStr = comps.join(" ");
+
+                        if (valStr !== "") {
+                            // 繪製箭頭與符號 (No conversion passed, raw logic used)
+                            // Note: createPointLoadSymbol internally handles multiple arrows
+                            const symbol = createPointLoadSymbol(pos, pl.forces, globalScale);
+                            rootGroup.add(symbol);
+
+                            // 繪製標籤 (紅色背景)
+                            const lbl = createLabelSprite(valStr, '#fff', 'rgba(255, 0, 0, 0.9)', 0.75, false);
+                            // Offset position: 0.5 in X and Y, and 1.0 in Z to move it clearly away from the symbol
+                            lbl.position.copy(pos).add(new THREE.Vector3(globalScale * 0.5, globalScale * 0.5, globalScale * 1.0));
+                            rootGroup.add(lbl);
+                        }
+                    }
+                });
+            }
+
+            if (showGrids) {
                 if (currentViewMode.type === '3D') {
                     let gridElev = modelData.storyMap.get(modelData.storySeq[0]);
                     rootGroup.add(createGridSystem(gridElev));
@@ -1556,7 +2086,7 @@
                 }
             }
 
-            rootGroup.rotation.x = -Math.PI/2;
+            rootGroup.rotation.x = -Math.PI / 2;
             scene.add(rootGroup);
 
             document.getElementById('status').innerText = `單位: ${currentUnits}\n渲染完成`;
@@ -1572,6 +2102,7 @@
             }
         }
 
+        // ... (fitCamera, setCameraView, clearModelData 等函數保持不變)
         function fitCamera() {
             const box = new THREE.Box3().setFromObject(rootGroup);
             if (box.isEmpty()) return;
@@ -1615,21 +2146,21 @@
 
         function setCameraView(type, value, extra) {
             currentViewMode = { type, value, extra };
-            
+
             if (type === '3D') {
                 currentCamera = perspectiveCamera;
                 controls.object = perspectiveCamera;
-                controls.enableRotate = true; 
+                controls.enableRotate = true;
             } else {
                 currentCamera = orthoCamera;
                 controls.object = orthoCamera;
-                controls.enableRotate = false; 
+                controls.enableRotate = false;
             }
-            build3DScene(true); 
+            build3DScene(true);
         }
 
         function clearModelData() {
-            if(rootGroup) {
+            if (rootGroup) {
                 scene.remove(rootGroup);
                 rootGroup = null;
             }
@@ -1648,8 +2179,8 @@
         }
 
         document.getElementById('fileInput').addEventListener('change', e => {
-            if(e.target.files.length > 0) {
-                clearModelData(); 
+            if (e.target.files.length > 0) {
+                clearModelData();
                 selectedFile = e.target.files[0];
                 document.getElementById('status').innerText = `已選擇檔案: ${selectedFile.name}\n請點擊「檢視模型」`;
                 document.getElementById('btnRender').disabled = false;
@@ -1657,7 +2188,7 @@
         });
 
         document.getElementById('btnRender').addEventListener('click', () => {
-            if(selectedFile) {
+            if (selectedFile) {
                 const reader = new FileReader();
                 reader.onload = evt => parseE2K(evt.target.result);
                 reader.readAsText(selectedFile);
@@ -1666,7 +2197,7 @@
 
         document.getElementById('btnClear').addEventListener('click', () => {
             clearModelData();
-            document.getElementById('fileInput').value = ""; 
+            document.getElementById('fileInput').value = "";
             selectedFile = null;
             document.getElementById('btnRender').disabled = true;
         });
@@ -1674,15 +2205,15 @@
         // 裁切輸入事件
         document.getElementById('btnResetClip').addEventListener('click', () => {
             updateClipInputs(true);
-            if(modelData.lineAssigns.length > 0) build3DScene(false);
+            if (modelData.lineAssigns.length > 0) build3DScene(false);
         });
 
         // 綁定 Slider 事件
         ['X', 'Y', 'Z'].forEach(axis => {
-            const rangeMin = document.getElementById('rangeMin'+axis);
-            const rangeMax = document.getElementById('rangeMax'+axis);
-            const numMin = document.getElementById('numMin'+axis);
-            const numMax = document.getElementById('numMax'+axis);
+            const rangeMin = document.getElementById('rangeMin' + axis);
+            const rangeMax = document.getElementById('rangeMax' + axis);
+            const numMin = document.getElementById('numMin' + axis);
+            const numMax = document.getElementById('numMax' + axis);
 
             // Slider Input (即時更新)
             [rangeMin, rangeMax].forEach(el => {
@@ -1691,7 +2222,7 @@
                     renderer.render(scene, currentCamera);
                 });
                 el.addEventListener('change', () => {
-                    if(modelData.lineAssigns.length > 0) build3DScene(false);
+                    if (modelData.lineAssigns.length > 0) build3DScene(false);
                 });
             });
 
@@ -1700,30 +2231,36 @@
                 el.addEventListener('change', () => {
                     updateClipInputs(false, false); // Read from inputs
                     updateClipInputs(false, true); // Sync back to sliders
-                    if(modelData.lineAssigns.length > 0) build3DScene(false);
+                    if (modelData.lineAssigns.length > 0) build3DScene(false);
                 });
             });
         });
 
-        document.getElementById('extrudeToggle').addEventListener('change', e=>{isExtruded=e.target.checked; if(modelData.lineAssigns.length) build3DScene(false);});
-        document.getElementById('sectionToggle').addEventListener('change', e=>{showSectionLabels=e.target.checked; if(modelData.lineAssigns.length) build3DScene(false);});
-        document.getElementById('frameLabelToggle').addEventListener('change', e=>{showFrameLabels=e.target.checked; if(modelData.lineAssigns.length) build3DScene(false);});
-        document.getElementById('jointLabelToggle').addEventListener('change', e=>{showJointLabels=e.target.checked; if(modelData.lineAssigns.length) build3DScene(false);});
-        document.getElementById('gridToggle').addEventListener('change', e=>{showGrids=e.target.checked; if(modelData.lineAssigns.length) build3DScene(false);});
-        document.getElementById('releaseToggle').addEventListener('change', e=>{showReleases=e.target.checked; if(modelData.lineAssigns.length) build3DScene(false);});
-        document.getElementById('loadToggle').addEventListener('change', e=>{showLoads=e.target.checked; if(modelData.lineAssigns.length) build3DScene(false);});
-        
+        document.getElementById('extrudeToggle').addEventListener('change', e => { isExtruded = e.target.checked; if (modelData.lineAssigns.length) build3DScene(false); });
+        document.getElementById('sectionToggle').addEventListener('change', e => { showSectionLabels = e.target.checked; if (modelData.lineAssigns.length) build3DScene(false); });
+        document.getElementById('frameLabelToggle').addEventListener('change', e => { showFrameLabels = e.target.checked; if (modelData.lineAssigns.length) build3DScene(false); });
+        document.getElementById('jointLabelToggle').addEventListener('change', e => { showJointLabels = e.target.checked; if (modelData.lineAssigns.length) build3DScene(false); });
+        document.getElementById('gridToggle').addEventListener('change', (e) => { showGrids = e.target.checked; build3DScene(); });
+        document.getElementById('releaseToggle').addEventListener('change', (e) => { showReleases = e.target.checked; build3DScene(); });
+
+        document.getElementById('colToggle').addEventListener('change', (e) => { showColumns = e.target.checked; build3DScene(); });
+        document.getElementById('beamToggle').addEventListener('change', (e) => { showBeams = e.target.checked; build3DScene(); });
+        document.getElementById('wallToggle').addEventListener('change', (e) => { showWalls = e.target.checked; build3DScene(); });
+        document.getElementById('floorToggle').addEventListener('change', (e) => { showFloors = e.target.checked; build3DScene(); });
+
+        document.getElementById('loadToggle').addEventListener('change', (e) => { showLoads = e.target.checked; build3DScene(); });
+
         document.getElementById('loadUnitSelector').addEventListener('change', e => {
             targetLoadUnitMode = e.target.value;
-            if(showLoads && modelData.lineAssigns.length) build3DScene(false);
+            if (showLoads && modelData.lineAssigns.length) build3DScene(false);
         });
 
-        document.getElementById('loadCaseSelector').addEventListener('change', e=>{currentLoadCase=e.target.value; if(showLoads && modelData.lineAssigns.length) build3DScene(false);});
+        document.getElementById('loadCaseSelector').addEventListener('change', e => { currentLoadCase = e.target.value; if (showLoads && modelData.lineAssigns.length) build3DScene(false); });
 
         document.getElementById('labelScaleSlider').addEventListener('input', (e) => {
             currentLabelScale = parseFloat(e.target.value);
             if (modelData.lineAssigns.length > 0 || modelData.gridDefs.length > 0) {
-                build3DScene(false); 
+                build3DScene(false);
             }
         });
 
@@ -1739,4 +2276,5 @@
 
     </script>
 </body>
+
 </html>
