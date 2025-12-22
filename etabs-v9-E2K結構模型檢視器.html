@@ -372,6 +372,35 @@
             width: 100vw;
             height: 100vh;
         }
+
+        /* Drag & Drop Styles */
+        .drop-zone {
+            border: 2px dashed #666;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .drop-zone.active {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            color: #fff;
+        }
+
+        .drop-zone:hover {
+            border-color: #888;
+        }
+
+        #fileNameDisplay {
+            color: #00ff00;
+            font-size: 12px;
+            margin-bottom: 5px;
+            word-break: break-all;
+        }
     </style>
     <script type="importmap">
         {
@@ -387,7 +416,12 @@
 
     <div id="ui-container">
         <h3>E2K 結構模型檢視器</h3>
-        <input type="file" id="fileInput" accept=".e2k,.txt">
+
+        <div id="dropZone" class="drop-zone">
+            點擊選擇或拖曳檔案至此<br>(Drag & Drop .e2k/.txt)
+        </div>
+        <div id="fileNameDisplay"></div>
+        <input type="file" id="fileInput" accept=".e2k,.txt" style="display:none">
 
         <div class="btn-group">
             <button id="btnRender" class="btn" disabled>檢視模型</button>
@@ -855,12 +889,19 @@
             if (frames) {
                 for (let line of frames) {
                     const t = tokenize(line);
-                    let d = 0.5, b = 0.5;
+                    let sec = { d: 0.5, b: 0.5, shape: "RECTANGULAR" };
                     for (let i = 2; i < t.length; i += 2) {
-                        if (t[i].toUpperCase() === 'D') d = parseFloat(t[i + 1]);
-                        if (t[i].toUpperCase() === 'B') b = parseFloat(t[i + 1]);
+                        const key = t[i].toUpperCase();
+                        const val = t[i + 1];
+                        if (key === 'D') sec.d = parseFloat(val);
+                        else if (key === 'B') sec.b = parseFloat(val);
+                        else if (key === 'SHAPE') sec.shape = val.toUpperCase();
+                        else if (key === 'TF') sec.tf = parseFloat(val);
+                        else if (key === 'TW') sec.tw = parseFloat(val);
+                        else if (key === 'BB') sec.bb = parseFloat(val);
+                        else if (key === 'TFB') sec.tfb = parseFloat(val);
                     }
-                    modelData.sectionDefs.set(t[1], { d, b });
+                    modelData.sectionDefs.set(t[1], sec);
                 }
             }
 
@@ -1652,15 +1693,67 @@
         }
 
         // ... (rest of the functions: createExtrudedBar, isVisible, getHeatmapColor, getLoadConversionFactor, build3DScene, fitCamera, setCameraView, clearModelData, Event Listeners remain the same)
-        function createExtrudedBar(p1, p2, width, depth, color) {
+        function createExtrudedBar(p1, p2, section, color) {
             const vec = new THREE.Vector3().subVectors(p2, p1);
             const len = vec.length();
             if (len < 0.001) return new THREE.Object3D();
-            const geo = new THREE.BoxGeometry(width, depth, len);
-            const mat = new THREE.MeshLambertMaterial({ color: color });
-            // 啟用裁切
-            mat.clippingPlanes = globalPlanes;
 
+            let geo;
+            const shapeType = (section.shape || "RECTANGULAR").toUpperCase();
+
+            if (shapeType === "I/WIDE FLANGE" || shapeType === "I SHAPE") {
+                const shape = new THREE.Shape();
+                const d = section.d || 0.5;
+                const b = section.b || 0.5; // Top flange width
+                const tf = section.tf || d * 0.1; // Top flange thickness
+                const tw = section.tw || b * 0.1;
+                const bb = section.bb || b; // Bottom flange width
+                const tfb = section.tfb || tf; // Bottom flange thickness
+
+                // Top flange (y from d/2-tf to d/2)
+                shape.moveTo(-b / 2, d / 2);
+                shape.lineTo(b / 2, d / 2);
+                shape.lineTo(b / 2, d / 2 - tf);
+                shape.lineTo(tw / 2, d / 2 - tf);
+                // To Bottom web top
+                shape.lineTo(tw / 2, -d / 2 + tfb);
+                // Bottom flange (y from -d/2 to -d/2+tfb)
+                shape.lineTo(bb / 2, -d / 2 + tfb);
+                shape.lineTo(bb / 2, -d / 2);
+                shape.lineTo(-bb / 2, -d / 2);
+                shape.lineTo(-bb / 2, -d / 2 + tfb);
+                shape.lineTo(-tw / 2, -d / 2 + tfb);
+                // Back to Top web bottom
+                shape.lineTo(-tw / 2, d / 2 - tf);
+                shape.lineTo(-b / 2, d / 2 - tf);
+                shape.lineTo(-b / 2, d / 2);
+
+                geo = new THREE.ExtrudeGeometry(shape, { depth: len, bevelEnabled: false });
+                geo.translate(0, 0, -len / 2);
+            } else if (shapeType === "ANGLE") {
+                const shape = new THREE.Shape();
+                const d = section.d || 0.5;
+                const b = section.b || 0.5;
+                const tf = section.tf || d * 0.1; // Flange thickness
+                const tw = section.tw || b * 0.1; // Web thickness
+
+                // L-shape centered on its bounding box
+                shape.moveTo(-b / 2, -d / 2);
+                shape.lineTo(b / 2, -d / 2);
+                shape.lineTo(b / 2, -d / 2 + tf);
+                shape.lineTo(-b / 2 + tw, -d / 2 + tf);
+                shape.lineTo(-b / 2 + tw, d / 2);
+                shape.lineTo(-b / 2, d / 2);
+                shape.lineTo(-b / 2, -d / 2);
+
+                geo = new THREE.ExtrudeGeometry(shape, { depth: len, bevelEnabled: false });
+                geo.translate(0, 0, -len / 2);
+            } else {
+                // Default to Box for Rectangular or unknown
+                geo = new THREE.BoxGeometry(section.b || 0.5, section.d || 0.5, len);
+            }
+
+            const mat = new THREE.MeshLambertMaterial({ color: color, clippingPlanes: globalPlanes });
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.copy(new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5));
             mesh.lookAt(p2);
@@ -1867,9 +1960,9 @@
                 }
 
                 if (isExtruded) {
-                    let d = 0.4, b = 0.4;
-                    if (a.section) { const s = modelData.sectionDefs.get(a.section); if (s) { d = s.d; b = s.b; } }
-                    rootGroup.add(createExtrudedBar(drawStart, drawEnd, b, d, isCol ? 0xff8800 : 0x00ffff));
+                    let sec = { d: 0.4, b: 0.4, shape: "RECTANGULAR" };
+                    if (a.section) { const s = modelData.sectionDefs.get(a.section); if (s) { sec = s; } }
+                    rootGroup.add(createExtrudedBar(drawStart, drawEnd, sec, isCol ? 0xff8800 : 0x00ffff));
                 } else {
                     const geo = new THREE.BufferGeometry().setFromPoints([drawStart, drawEnd]);
                     rootGroup.add(new THREE.Line(geo, new THREE.LineBasicMaterial({ color: isCol ? 0xff8800 : 0x00ffff, clippingPlanes: globalPlanes })));
@@ -2174,23 +2267,60 @@
             document.getElementById('viewSelector').innerHTML = '<option value="3D">3D 全景 (3D View)</option>';
             document.getElementById('loadCaseSelector').innerHTML = '<option value="">無載重資料</option>';
             document.getElementById('loadLegend').style.display = 'none';
-            currentViewMode = { type: '3D', value: null };
-            controls.reset();
         }
 
-        document.getElementById('fileInput').addEventListener('change', e => {
-            if (e.target.files.length > 0) {
-                clearModelData();
-                selectedFile = e.target.files[0];
-                document.getElementById('status').innerText = `已選擇檔案: ${selectedFile.name}\n請點擊「檢視模型」`;
-                document.getElementById('btnRender').disabled = false;
+        document.getElementById('rangeMaxZ').addEventListener('input', () => updateClipInputs(false, false));
+
+        // Drag & Drop Event Listeners
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click()); // Click to open file dialog
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('active');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            if (e.dataTransfer.files.length > 0) {
+                handleFileSelection(e.dataTransfer.files[0]);
             }
         });
+
+        fileInput.addEventListener('change', (event) => {
+            if (event.target.files.length > 0) {
+                handleFileSelection(event.target.files[0]);
+            }
+        });
+
+        function handleFileSelection(file) {
+            if (file) {
+                document.getElementById('fileNameDisplay').innerText = `檔案: ${file.name}`;
+                selectedFile = file;
+                document.getElementById('btnRender').disabled = false;
+                document.getElementById('status').innerText = "檔案已選擇，請點擊「檢視模型」";
+
+                // Auto-load convenience (optional, but requested in flow usually)
+                // Let's keep manual Trigger for now OR auto trigger:
+                // Usually users expect drop -> load.
+                // But original flow had "View Model" button. 
+                // Let's stick to selecting file enablement first, user clicks button.
+                // Actually, let's keep it consistent: select -> enable button.
+            }
+        }
 
         document.getElementById('btnRender').addEventListener('click', () => {
             if (selectedFile) {
                 const reader = new FileReader();
-                reader.onload = evt => parseE2K(evt.target.result);
+                reader.onload = (e) => parseE2K(e.target.result);
                 reader.readAsText(selectedFile);
             }
         });
@@ -2200,6 +2330,7 @@
             document.getElementById('fileInput').value = "";
             selectedFile = null;
             document.getElementById('btnRender').disabled = true;
+            document.getElementById('fileNameDisplay').innerText = "無檔案"; // Clear filename display
         });
 
         // 裁切輸入事件
